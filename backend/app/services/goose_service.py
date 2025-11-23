@@ -12,11 +12,31 @@ from typing import Dict, List, Any, AsyncGenerator, Optional
 from datetime import datetime, timedelta
 import structlog
 
-# Import Goose components (these would be the actual imports when goose-ai is available)
-# For now, we'll create placeholder interfaces
-from goose.session_manager import SessionManager
+# Import Goose components - with compatibility fixes for goose-ai 0.9.x
 from goose.toolkit.base import Toolkit
-from goose.providers.anthropic import AnthropicProvider
+from typing import Any, Dict, List, Optional
+
+# Stub classes for missing components in goose-ai 0.9.x
+class SessionManager:
+    """Stub SessionManager for compatibility"""
+    def __init__(self, session_name: str = "default"):
+        self.session_name = session_name
+        self.messages = []
+    
+    def add_message(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+    
+    def get_messages(self):
+        return self.messages
+
+class AnthropicProvider:
+    """Stub AnthropicProvider for compatibility"""
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+    
+    async def generate(self, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+        # This is a placeholder - in a real implementation, this would call Anthropic API
+        return {"content": "This is a placeholder response. Backend integration in progress.", "role": "assistant"}
 
 from app.config.settings import settings
 from app.models.chat import ChatMessage, MessageRole

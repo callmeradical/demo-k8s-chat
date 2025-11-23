@@ -7,7 +7,7 @@ through kubectl commands, direct API calls, and MCP server integration.
 
 from typing import List, Dict, Any, Optional
 from goose.toolkit.base import Tool, Toolkit
-from goose.utils.ask import ask_an_llm
+from goose.utils.ask import ask_an_ai
 import structlog
 
 from .tools.kubectl import KubectlTool
