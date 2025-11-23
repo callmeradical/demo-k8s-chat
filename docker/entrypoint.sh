@@ -61,14 +61,14 @@ if [ "$ENABLE_BACKEND" = "true" ]; then
     echo -e "${GREEN}✅ Enabling Backend Service${NC}"
     cat >> /app/config/supervisord.conf << EOF
 [program:backend]
-command=python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
-directory=/app
+command=python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+directory=/app/backend
 user=app
 autostart=true
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/app/logs/backend.log
-environment=PYTHONPATH="/app"
+environment=PYTHONPATH="/app/backend"
 
 EOF
 fi
@@ -80,6 +80,13 @@ if [ "$ENABLE_NGINX" = "true" ] && [ "$ENABLE_FRONTEND" = "true" ]; then
     # Create nginx config in app directory
     cp /etc/nginx/nginx.conf /app/config/nginx.conf
 
+    # Modify nginx config for non-root operation
+    sed -i 's/user nginx;/user app;/' /app/config/nginx.conf
+    sed -i 's|pid /run/nginx.pid;|pid /tmp/nginx.pid;|' /app/config/nginx.conf
+    sed -i 's|pid /var/run/nginx.pid;|pid /tmp/nginx.pid;|' /app/config/nginx.conf
+    sed -i 's|/var/log/nginx/access.log|/app/logs/access.log|' /app/config/nginx.conf
+    sed -i 's|/var/log/nginx/error.log|/app/logs/error.log|' /app/config/nginx.conf
+
     # Update nginx config with backend proxy if backend is enabled
     if [ "$ENABLE_BACKEND" = "true" ]; then
         sed -i 's/# proxy_pass http:\/\/localhost:8000;/proxy_pass http:\/\/localhost:8000;/' /app/config/nginx.conf
@@ -88,7 +95,7 @@ if [ "$ENABLE_NGINX" = "true" ] && [ "$ENABLE_FRONTEND" = "true" ]; then
     cat >> /app/config/supervisord.conf << EOF
 [program:nginx]
 command=/usr/sbin/nginx -c /app/config/nginx.conf -g "daemon off;"
-user=root
+user=app
 autostart=true
 autorestart=true
 redirect_stderr=true
