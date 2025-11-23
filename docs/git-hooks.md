@@ -17,6 +17,7 @@ Runs fast quality checks before each commit:
 - ✅ **Secrets detection** - Scans for potential API keys/passwords
 - ✅ **Python syntax** - Validates Python code syntax
 - ✅ **Whitespace issues** - Catches trailing spaces, mixed line endings
+- ✅ **Backend dependencies** - Tests pip dependency resolution in isolated environment
 
 ### Pre-push Hook
 Runs comprehensive checks before pushing to remote:
@@ -106,6 +107,7 @@ pip3 install safety pytest flake8 black isort
   - Merge conflict markers
   - Large files (>1MB)
   - Python syntax errors
+  - Backend dependency resolution failures
   - Helm chart validation failures
   - Whitespace issues
 
