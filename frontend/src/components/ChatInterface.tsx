@@ -12,8 +12,7 @@ import {
 } from '@mui/material';
 import { 
   Psychology as GooseIcon, 
-  Refresh as RefreshIcon,
-  Build as ToolIcon 
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { ChatMessage as ChatMessageComponent } from './ChatMessage';
 import { ChatInput } from './ChatInput';

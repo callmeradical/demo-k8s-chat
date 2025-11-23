@@ -177,9 +177,9 @@ export class GooseApiService {
     }
   }
 
-  async callK8sTool(toolName: string, arguments?: any): Promise<ApiResponse<any>> {
+  async callK8sTool(toolName: string, toolArgs?: any): Promise<ApiResponse<any>> {
     try {
-      const response: AxiosResponse = await apiClient.post(`/k8s/tools/${toolName}`, arguments);
+      const response: AxiosResponse = await apiClient.post(`/k8s/tools/${toolName}`, toolArgs);
       return {
         data: response.data,
         status: response.status

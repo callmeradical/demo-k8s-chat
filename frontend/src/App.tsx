@@ -1,4 +1,3 @@
-import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { GooseChatInterface } from './components/ChatInterface';
 
