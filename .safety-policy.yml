@@ -7,8 +7,8 @@ security:
     # Add specific vulnerability IDs here if needed after security review
     # Example: 12345  # Brief justification for exception
 
-  # Ignore based on CVSS severity (options: low, medium, high, critical)
-  ignore-cvss-severity-below: medium
+  # Ignore based on CVSS severity (0.0-10.0 scale, where 7.0+ is high, 4.0-6.9 is medium)
+  ignore-cvss-severity-below: 7.0
   
   # Handle unknown severity vulnerabilities
   ignore-cvss-unknown-severity: false
