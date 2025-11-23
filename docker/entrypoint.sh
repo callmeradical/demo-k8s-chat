@@ -59,6 +59,10 @@ EOF
 # Add backend service if enabled
 if [ "$ENABLE_BACKEND" = "true" ]; then
     echo -e "${GREEN}✅ Enabling Backend Service${NC}"
+
+    # Filter out problematic environment variables for backend
+    ENV_FILTER="TEMPORAL_HOST TEMPORAL_NAMESPACE TEMPORAL_TASK_QUEUE"
+
     cat >> /app/config/supervisord.conf << EOF
 [program:backend]
 command=python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
@@ -86,6 +90,9 @@ if [ "$ENABLE_NGINX" = "true" ] && [ "$ENABLE_FRONTEND" = "true" ]; then
     sed -i 's|pid /var/run/nginx.pid;|pid /tmp/nginx.pid;|' /app/config/nginx.conf
     sed -i 's|/var/log/nginx/access.log|/app/logs/access.log|' /app/config/nginx.conf
     sed -i 's|/var/log/nginx/error.log|/app/logs/error.log|' /app/config/nginx.conf
+
+    # Fix nginx temp directories for non-root operation
+    sed -i '/http {/a\\tclient_body_temp_path /tmp/client_temp;\n\tproxy_temp_path /tmp/proxy_temp;\n\tfastcgi_temp_path /tmp/fastcgi_temp;\n\tuwsgi_temp_path /tmp/uwsgi_temp;\n\tscgi_temp_path /tmp/scgi_temp;' /app/config/nginx.conf
 
     # Update nginx config with backend proxy if backend is enabled
     if [ "$ENABLE_BACKEND" = "true" ]; then
