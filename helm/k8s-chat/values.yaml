@@ -1,0 +1,150 @@
+# Default values for k8s-chat
+
+# Deployment mode: "single" or "separate"
+# - single: One container with both frontend and backend
+# - separate: Separate containers for frontend and backend
+deploymentMode: "single"
+
+# Namespace configuration
+namespace:
+  create: true
+  name: "k8s-chat"
+  annotations: {}
+  labels: {}
+
+replicaCount:
+  # For single mode: only app.replicas is used
+  # For separate mode: backend/frontend replicas are used
+  app: 1
+  backend: 1
+  frontend: 1
+
+image:
+  # Single container mode
+  app:
+    repository: your-dockerhub-username/k8s-chat
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  # Separate containers mode (legacy support)
+  backend:
+    repository: your-dockerhub-username/k8s-chat-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  frontend:
+    repository: your-dockerhub-username/k8s-chat-frontend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  backend:
+    type: ClusterIP
+    port: 8000
+  frontend:
+    type: ClusterIP
+    port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  hosts:
+    - host: k8s-chat.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  backend:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  frontend:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  # Service control for single container mode
+  singleMode:
+    enableBackend: true
+    enableFrontend: true
+    enableNginx: true
+  
+  backend:
+    # Anthropic configuration
+    anthropicApiKey: ""  # Should be provided via secret
+    anthropicModel: "claude-3-5-sonnet-20241022"
+    anthropicMaxTokens: 4096
+    
+    # Goose configuration
+    gooseProvider: "anthropic"
+    gooseModel: "claude-3-5-sonnet-20241022"
+    gooseMaxTokens: 4096
+    
+    # MCP Server configuration
+    k8sMcpServerUrl: "http://k8s-mcp-server:8080"
+    
+    # Logging
+    logLevel: "INFO"
+    debug: false
+
+# External dependencies (not deployed by this chart)
+externalServices:  
+  k8sMcpServer:
+    enabled: false
+    host: "k8s-mcp-server"
+    port: 8080
+
+# Secrets
+secrets:
+  anthropic:
+    create: true
+    apiKey: ""  # Base64 encoded API key

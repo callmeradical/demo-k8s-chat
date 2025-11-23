@@ -1,0 +1,51 @@
+{{- if eq .Values.deploymentMode "single" }}
+# ConfigMap for single container mode
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-chat.fullname" . }}-config
+  labels:
+    {{- include "k8s-chat.labels" . | nindent 4 }}
+data:
+  # Anthropic configuration
+  ANTHROPIC_MODEL: {{ .Values.config.backend.anthropicModel | quote }}
+  ANTHROPIC_MAX_TOKENS: {{ .Values.config.backend.anthropicMaxTokens | quote }}
+  
+  # Goose configuration
+  GOOSE_PROVIDER: {{ .Values.config.backend.gooseProvider | quote }}
+  GOOSE_MODEL: {{ .Values.config.backend.gooseModel | quote }}
+  GOOSE_MAX_TOKENS: {{ .Values.config.backend.gooseMaxTokens | quote }}
+  
+  # MCP Server configuration
+  K8S_MCP_SERVER_URL: {{ .Values.config.backend.k8sMcpServerUrl | quote }}
+  
+  # Logging
+  LOG_LEVEL: {{ .Values.config.backend.logLevel | quote }}
+  DEBUG: {{ .Values.config.backend.debug | quote }}
+{{- end }}
+
+{{- if eq .Values.deploymentMode "separate" }}
+# ConfigMap for separate container backend
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-chat.fullname" . }}-backend
+  labels:
+    {{- include "k8s-chat.labels" . | nindent 4 }}
+data:
+  # Anthropic configuration
+  ANTHROPIC_MODEL: {{ .Values.config.backend.anthropicModel | quote }}
+  ANTHROPIC_MAX_TOKENS: {{ .Values.config.backend.anthropicMaxTokens | quote }}
+  
+  # Goose configuration
+  GOOSE_PROVIDER: {{ .Values.config.backend.gooseProvider | quote }}
+  GOOSE_MODEL: {{ .Values.config.backend.gooseModel | quote }}
+  GOOSE_MAX_TOKENS: {{ .Values.config.backend.gooseMaxTokens | quote }}
+  
+  # MCP Server configuration
+  K8S_MCP_SERVER_URL: {{ .Values.config.backend.k8sMcpServerUrl | quote }}
+  
+  # Logging
+  LOG_LEVEL: {{ .Values.config.backend.logLevel | quote }}
+  DEBUG: {{ .Values.config.backend.debug | quote }}
+{{- end }}

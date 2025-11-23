@@ -1,0 +1,83 @@
+{{- if .Values.serviceAccount.create }}
+# ClusterRole for K8s Chat operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "k8s-chat.fullname" . }}-operator
+  labels:
+    {{- include "k8s-chat.labels" . | nindent 4 }}
+rules:
+  # Basic cluster-wide read permissions
+  - apiGroups: [""]
+    resources: 
+      - nodes
+      - namespaces
+      - persistentvolumes
+    verbs: ["get", "list", "watch"]
+  
+  # Pod and service operations in all namespaces
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - configmaps
+      - secrets
+      - events
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  
+  # Deployment and StatefulSet operations
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - statefulsets
+      - daemonsets
+      - replicasets
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "scale"]
+  
+  # Ingress and networking
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+      - networkpolicies
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  
+  # RBAC resources (limited)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+    verbs: ["get", "list", "watch"]
+  
+  # Storage resources
+  - apiGroups: ["storage.k8s.io"]
+    resources:
+      - storageclasses
+      - volumeattachments
+    verbs: ["get", "list", "watch"]
+  
+  # Metrics
+  - apiGroups: ["metrics.k8s.io"]
+    resources:
+      - pods
+      - nodes
+    verbs: ["get", "list"]
+
+---
+# ClusterRoleBinding for K8s Chat
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "k8s-chat.fullname" . }}-operator
+  labels:
+    {{- include "k8s-chat.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "k8s-chat.fullname" . }}-operator
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "k8s-chat.serviceAccountName" . }}
+    namespace: {{ .Values.namespace.name }}
+{{- end }}
