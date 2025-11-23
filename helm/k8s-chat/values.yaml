@@ -22,7 +22,7 @@ replicaCount:
 image:
   # Single container mode
   app:
-    repository: your-dockerhub-username/k8s-chat
+    repository: callmeradical/k8s-chat
     pullPolicy: IfNotPresent
     tag: "latest"
   

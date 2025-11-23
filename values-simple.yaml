@@ -1,0 +1,48 @@
+# Simple local deployment values for k8s-chat
+# Basic configuration for testing
+
+# Disable ingress for local development
+ingress:
+  enabled: false
+
+# Use NodePort for easy local access
+service:
+  backend:
+    type: NodePort
+    port: 8000
+    nodePort: 30800
+  frontend:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+
+# Enable backend but provide a placeholder API key
+config:
+  singleMode:
+    enableBackend: true
+    enableFrontend: true
+    enableNginx: true
+
+# Provide a placeholder API key for testing
+secrets:
+  anthropic:
+    create: true
+    # This is a placeholder - replace with your real API key
+    apiKey: "c2stcGxhY2Vob2xkZXItYXBpLWtleQ=="  # Base64 of "sk-placeholder-api-key"
+
+# Reduce resource requests for local development
+resources:
+  backend:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  frontend:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

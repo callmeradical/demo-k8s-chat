@@ -42,11 +42,11 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Create necessary directories
-RUN mkdir -p /var/log/supervisor /var/log/nginx /app/logs
+RUN mkdir -p /var/log/supervisor /var/log/nginx /app/logs /app/config \
+    && chown -R app:app /app /var/log/supervisor /var/log/nginx
 
 # Fix permissions
-RUN chown -R app:app /app /var/log/supervisor /var/log/nginx \
-    && chown app:app /usr/share/nginx/html
+RUN chown app:app /usr/share/nginx/html
 
 # Expose ports
 EXPOSE 80 8000
@@ -61,5 +61,5 @@ USER app
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-# Default command
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf", "-n"]
+# Default command (this will be overridden by entrypoint)
+CMD []
