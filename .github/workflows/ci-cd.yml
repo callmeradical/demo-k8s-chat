@@ -2,11 +2,12 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
-    tags: ['v*']
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
+# Add permissions for security events
 permissions:
   contents: read
   security-events: write
@@ -14,15 +15,14 @@ permissions:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: k8s-chat
+  IMAGE_NAME: callmeradical/k8s-chat
 
 jobs:
-  # Stage 1: Test, Security, and Lint
   test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -49,6 +49,10 @@ jobs:
       working-directory: ./frontend
       run: npm run lint || echo "⚠️ ESLint configuration needs setup"
 
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -74,10 +78,10 @@ jobs:
       run: pytest --cov=app --cov-report=xml --cov-report=term-missing 2>/dev/null || echo "⚠️ No tests found or pytest not configured"
 
   security-scan:
+    name: Security Scan
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Run Trivy vulnerability scanner in repo mode
       uses: aquasecurity/trivy-action@master
@@ -89,7 +93,8 @@ jobs:
 
     - name: Upload Trivy scan results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v4
-      if: always()
+      # Skip upload on pull requests from forks to avoid permission issues
+      if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
       with:
         sarif_file: 'trivy-results.sarif'
 
@@ -124,46 +129,45 @@ jobs:
       run: npm audit --audit-level moderate || echo "⚠️ npm audit found issues or not configured"
 
   helm-lint:
+    name: Helm Lint
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
     - name: Set up Helm
       uses: azure/setup-helm@v3
       with:
-        version: 'latest'
+        version: v3.12.0
 
-    - name: Helm lint
-      run: |
-        helm lint ./helm/k8s-chat
-        echo "✅ Helm chart validation passed"
+    - name: Lint Helm chart
+      run: helm lint helm/k8s-chat
 
-    - name: Helm template test
+    - name: Template Helm chart
       run: |
-        helm template test-release ./helm/k8s-chat \
+        helm template test-release helm/k8s-chat \
           --set image.app.repository=test/k8s-chat \
           --set image.app.tag=test \
           --set secrets.anthropic.apiKey=test-key \
-          > /tmp/helm-output.yaml
-        echo "✅ Helm template generation successful"
+          --debug
 
-  # Stage 2: Build and Push (only after all tests pass)
   build-and-push:
-    needs: [test, security-scan, helm-lint]
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 30
+    needs: [test, security-scan, helm-lint]
+    if: github.event_name != 'pull_request'
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
     - name: Log in to Docker Hub
-      if: github.event_name != 'pull_request'
       uses: docker/login-action@v3
       with:
+        registry: ${{ env.REGISTRY }}
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
@@ -171,33 +175,92 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
-          type=raw,value=latest,enable={{is_default_branch}}
+          type=semver,pattern={{major}}
           type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         platforms: linux/amd64,linux/arm64
-        push: ${{ github.event_name != 'pull_request' }}
+        push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Image digest
-      if: github.event_name != 'pull_request'
-      run: echo ${{ steps.build.outputs.digest }}
+    - name: Scan Docker image for vulnerabilities
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        format: 'sarif'
+        output: 'docker-trivy-results.sarif'
+      continue-on-error: true
 
-    - name: Update deployment status
-      if: github.event_name != 'pull_request'
+    - name: Upload Docker scan results
+      uses: github/codeql-action/upload-sarif@v4
+      if: always() && hashFiles('docker-trivy-results.sarif') != ''
+      with:
+        sarif_file: 'docker-trivy-results.sarif'
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build-and-push, helm-lint]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.12.0
+
+    - name: Package Helm chart
       run: |
-        echo "🚀 Successfully built and pushed image"
-        echo "📦 Image: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}"
-        echo "🏷️  Tags: ${{ steps.meta.outputs.tags }}"
+        helm package helm/k8s-chat
+        ls -la *.tgz
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## Changes in this Release
+          - Container image: `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}`
+          - Helm chart: See attached assets
+
+          ## Deployment
+          ```bash
+          # Using Helm
+          helm upgrade --install k8s-chat ./k8s-chat-*.tgz --set secrets.anthropic.apiKey=your-api-key
+
+          # Using Docker (Full application)
+          docker run -p 80:80 -e ANTHROPIC_API_KEY=your-api-key ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+
+          # Using Docker (Frontend only - demo mode)
+          docker run -p 80:80 -e ENABLE_BACKEND=false -e ENABLE_FRONTEND=true ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          ```
+        draft: false
+        prerelease: false
+
+    - name: Upload Helm chart as release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./k8s-chat-*.tgz
+        asset_name: k8s-chat-helm-chart.tgz
+        asset_content_type: application/gzip
