@@ -1,4 +1,4 @@
-name: Build and Push to Docker Hub
+name: CI/CD Pipeline
 
 on:
   push:
@@ -12,7 +12,125 @@ env:
   IMAGE_NAME: k8s-chat
 
 jobs:
+  # Stage 1: Test, Security, and Lint
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package-lock.json'
+
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Run frontend tests
+      working-directory: ./frontend
+      run: npm test -- --coverage --watchAll=false
+
+    - name: Frontend lint
+      working-directory: ./frontend
+      run: npm run lint
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        cache-dependency-path: 'backend/requirements.txt'
+
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: |
+        pip install -r requirements.txt
+        pip install pytest pytest-cov flake8 black isort
+
+    - name: Backend lint and format check
+      working-directory: ./backend
+      run: |
+        flake8 . --max-line-length=88 --extend-ignore=E203,W503
+        black --check .
+        isort --check-only .
+
+    - name: Run backend tests
+      working-directory: ./backend
+      run: pytest --cov=app --cov-report=xml --cov-report=term-missing
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner in repo mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Set up Python for backend security scan
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install safety
+      run: pip install safety
+
+    - name: Run safety check on backend dependencies
+      working-directory: ./backend
+      run: safety check -r requirements.txt
+
+    - name: Set up Node.js for frontend security scan
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Run npm audit
+      working-directory: ./frontend
+      run: npm audit --audit-level moderate
+
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'latest'
+
+    - name: Helm lint
+      run: |
+        helm lint ./helm/k8s-chat
+        echo "✅ Helm chart validation passed"
+
+    - name: Helm template test
+      run: |
+        helm template test-release ./helm/k8s-chat \
+          --set image.app.repository=test/k8s-chat \
+          --set image.app.tag=test \
+          --set secrets.anthropic.apiKey=test-key \
+          > /tmp/helm-output.yaml
+        echo "✅ Helm template generation successful"
+
+  # Stage 2: Build and Push (only after all tests pass)
   build-and-push:
+    needs: [test, security-scan, helm-lint]
     runs-on: ubuntu-latest
     
     steps:
@@ -56,3 +174,10 @@ jobs:
     - name: Image digest
       if: github.event_name != 'pull_request'
       run: echo ${{ steps.build.outputs.digest }}
+
+    - name: Update deployment status
+      if: github.event_name != 'pull_request'
+      run: |
+        echo "🚀 Successfully built and pushed image"
+        echo "📦 Image: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}"
+        echo "🏷️  Tags: ${{ steps.meta.outputs.tags }}"
