@@ -8,14 +8,14 @@ httpx==0.25.2
 aiohttp==3.12.14
 
 # Goose AI Agent Framework
-goose-ai>=0.9.0
+goose-ai>=0.9.0,<1.0.0
 
 # Anthropic Claude API (for Goose provider)
 anthropic==0.7.8
 
 # Data Validation
-pydantic==2.5.0
-pydantic-settings==2.1.0
+pydantic>=2.5.0,<3.0.0
+pydantic-settings>=2.1.0,<3.0.0
 
 # Environment
 python-dotenv==1.0.0
@@ -30,11 +30,11 @@ structlog==23.2.0
 orjson==3.9.15
 
 # Kubernetes client
-kubernetes>=29.0.0
+kubernetes>=29.0.0,<30.0.0
 
 # Development
-pytest==7.4.3
-pytest-asyncio==0.21.1
-black==24.3.0
-isort==5.12.0
-mypy==1.7.1
+pytest>=7.4.0,<8.0.0
+pytest-asyncio>=0.21.0,<1.0.0
+black>=24.3.0,<25.0.0
+isort>=5.12.0,<6.0.0
+mypy>=1.7.0,<2.0.0
