@@ -4,7 +4,7 @@ FROM node:18-alpine as frontend-build
 # Build frontend
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 COPY frontend/ ./
 RUN npm run build
@@ -31,7 +31,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 
 # Copy built frontend
-COPY --from=frontend-build /app/frontend/build /usr/share/nginx/html/
+COPY --from=frontend-build /app/frontend/dist /usr/share/nginx/html/
 
 # Copy configuration files
 COPY docker/nginx.conf /etc/nginx/nginx.conf
