@@ -127,16 +127,34 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: ⚙️ Install Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: '3.14.0'
+
     - name: 📦 Package Helm chart
       run: |
         helm package ./helm/k8s-chat
 
-    - name: 📤 Upload Helm chart
-      uses: actions/upload-artifact@v4
-      with:
-        name: helm-chart
-        path: k8s-chat-*.tgz
-        retention-days: 30
+    - name: 🏷️ Extract chart version
+      id: chart-version
+      run: |
+        CHART_VERSION=$(helm show chart ./helm/k8s-chat | grep '^version:' | awk '{print $2}')
+        echo "version=${CHART_VERSION}" >> $GITHUB_OUTPUT
+        echo "Chart version: ${CHART_VERSION}"
+
+    - name: 📤 Push Helm chart to DockerHub (OCI)
+      run: |
+        # Enable OCI support for Helm
+        export HELM_EXPERIMENTAL_OCI=1
+
+        # Login to DockerHub for Helm OCI
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | helm registry login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+        # Push the chart as OCI artifact
+        helm push k8s-chat-${{ steps.chart-version.outputs.version }}.tgz oci://docker.io/${{ secrets.DOCKERHUB_USERNAME }}
+
+        echo "✅ Helm chart pushed to oci://docker.io/${{ secrets.DOCKERHUB_USERNAME }}/k8s-chat:${{ steps.chart-version.outputs.version }}"
 
   deploy-demo:
     name: 🎬 Deploy Demo Environment

@@ -33,7 +33,7 @@ securityContext:
 service:
   type: NodePort
   port: 3000
-  nodePort: 30300  # Fixed NodePort for Goose web interface
+  nodePort: 30302  # Fixed NodePort for Goose web interface
 
 ingress:
   enabled: false  # Disable ingress, use NodePort for simplicity

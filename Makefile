@@ -1,5 +1,5 @@
-# Makefile for Real Goose K8s Chat
-# Professional interface for containerized Goose AI agent with Kubernetes integration
+# Makefile for k8s-chat
+# Professional chat interface for Kubernetes cluster management
 
 .PHONY: help info validate local-start local-stop local-restart local-logs local-clean helm-install helm-install-local helm-upgrade helm-upgrade-local helm-uninstall helm-template helm-template-local helm-lint helm-test helm-rollback helm-history helm-get-values helm-get-manifest helm-dry-run k8s-deploy k8s-deploy-registry k8s-clean k8s-status k8s-logs k8s-port-forward build push lint test setup-kubeconfig change-model demo-setup demo-clean ci-test ci-security-scan release-prepare clean clean-all version status install-hooks
 
@@ -18,19 +18,19 @@ NC=\033[0m # No Color
 # Project Variables
 PROJECT_NAME=k8s-chat
 DOCKER_IMAGE=demo-k8s-chat
-HELM_RELEASE=k8s-chat
-NAMESPACE=default
+HELM_RELEASE=k8s-chat-demo
+NAMESPACE=demo
 GOOSE_VERSION=v1.15.0
 PORT=3000
-K8S_PORT=30300
+K8S_PORT=30302
 
 # Container Variables
 CONTAINER_NAME=k8s-chat-goose
 COMPOSE_FILE=docker-compose.goose.yml
 
-help: ## 🦢 Show this help message
-	@echo "$(BLUE)🦢 Real Goose K8s Chat - Available Commands$(NC)"
-	@echo "=================================================="
+help: ## 💬 Show this help message
+	@echo "$(BLUE)💬 K8s Chat - Available Commands$(NC)"
+	@echo "=================================="
 	@echo ""
 	@echo "$(CYAN)Get started quickly:$(NC)"
 	@echo "  1. $(YELLOW)make info$(NC)         - Check prerequisites"
@@ -45,11 +45,11 @@ help: ## 🦢 Show this help message
 ##@ 🚀 Quick Actions
 
 info: ## Show project information and environment check
-	@echo "$(BLUE)🦢 Real Goose K8s Chat - Project Information$(NC)"
-	@echo "============================================="
+	@echo "$(BLUE)💬 K8s Chat - Project Information$(NC)"
+	@echo "==================================="
 	@echo ""
 	@echo "$(YELLOW)📁 Project Structure:$(NC)"
-	@echo "  📦 $(PROJECT_NAME)         - Real Goose AI agent for Kubernetes"
+	@echo "  📦 $(PROJECT_NAME)         - Chat interface for Kubernetes"
 	@echo "  🐳 Docker Image    - $(DOCKER_IMAGE)"
 	@echo "  🦢 Goose Version   - $(GOOSE_VERSION)"
 	@echo "  🌐 Local Port     - http://localhost:$(PORT)"
@@ -57,8 +57,8 @@ info: ## Show project information and environment check
 	@echo ""
 	@echo "$(YELLOW)🔧 Components:$(NC)"
 	@echo "  📁 scripts/       - All operational scripts"
-	@echo "  🐳 Dockerfile.goose - Real Goose container definition"
-	@echo "  ⚙️  goose-config.yaml - Goose AI configuration"
+	@echo "  🐳 Dockerfile.goose - Container definition"
+	@echo "  ⚙️  goose-config.yaml - AI agent configuration"
 	@echo "  ☸️  helm/k8s-chat/ - Kubernetes deployment chart"
 	@echo ""
 	@echo "$(YELLOW)🛠️  Environment Check:$(NC)"
@@ -150,6 +150,7 @@ helm-install: validate ## Install Helm chart (using registry image)
 	fi
 	@helm install $(HELM_RELEASE) ./helm/k8s-chat \
 		--set secrets.anthropic.apiKey="$$ANTHROPIC_API_KEY" \
+		--set fullnameOverride="$(HELM_RELEASE)" \
 		--namespace $(NAMESPACE) \
 		--wait
 	@echo "$(GREEN)✅ Helm chart installed successfully!$(NC)"
@@ -164,6 +165,7 @@ helm-install-local: validate ## Install Helm chart using local Docker image
 	@helm install $(HELM_RELEASE) ./helm/k8s-chat \
 		--values values-local.yaml \
 		--set secrets.anthropic.apiKey="$$ANTHROPIC_API_KEY" \
+		--set fullnameOverride="$(HELM_RELEASE)" \
 		--namespace $(NAMESPACE) \
 		--wait
 	@echo "$(GREEN)✅ Helm chart installed successfully with local image!$(NC)"
