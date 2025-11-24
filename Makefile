@@ -17,7 +17,7 @@ NC=\033[0m # No Color
 
 # Project Variables
 PROJECT_NAME=k8s-chat
-DOCKER_IMAGE=demo-k8s-chat-goose-web
+DOCKER_IMAGE=demo-k8s-chat
 HELM_RELEASE=k8s-chat
 NAMESPACE=default
 GOOSE_VERSION=v1.15.0

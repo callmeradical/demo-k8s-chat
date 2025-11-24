@@ -2,7 +2,7 @@
 # Use this for local testing with locally built images
 
 image:
-  repository: demo-k8s-chat-goose-web
+  repository: demo-k8s-chat
   pullPolicy: Never  # Use local Docker images
   tag: "latest"
 

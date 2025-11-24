@@ -4,7 +4,7 @@
 replicaCount: 1
 
 image:
-  repository: callmeradical/demo-k8s-chat-goose-web  # Docker Hub repository
+  repository: callmeradical/demo-k8s-chat  # Docker Hub repository
   pullPolicy: IfNotPresent  # Pull from registry if not present locally
   tag: "main"  # Use main branch tag by default
 

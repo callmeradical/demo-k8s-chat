@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: docker.io  # Using Docker Hub
-  IMAGE_NAME: demo-k8s-chat-goose-web
+  IMAGE_NAME: demo-k8s-chat
 
 jobs:
   validate:
@@ -62,7 +62,7 @@ jobs:
     - name: 🔨 Build Docker image
       run: |
         make build
-        minikube image load demo-k8s-chat-goose-web:latest
+        minikube image load demo-k8s-chat:latest
 
     - name: 🎬 Setup demo environment
       run: make demo-setup
@@ -162,7 +162,7 @@ jobs:
     - name: 🔨 Build and load image
       run: |
         make build
-        minikube image load demo-k8s-chat-goose-web:latest
+        minikube image load demo-k8s-chat:latest
 
     - name: 🎬 Deploy demo environment
       run: |
