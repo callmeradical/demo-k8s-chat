@@ -1,7 +1,7 @@
 # Makefile for Real Goose K8s Chat
 # Professional interface for containerized Goose AI agent with Kubernetes integration
 
-.PHONY: help info validate local-start local-stop local-restart local-logs local-clean k8s-deploy k8s-clean k8s-status k8s-logs k8s-port-forward build push lint test setup-kubeconfig change-model demo-setup demo-clean ci-test ci-security-scan release-prepare clean clean-all version status install-hooks
+.PHONY: help info validate local-start local-stop local-restart local-logs local-clean k8s-deploy k8s-deploy-registry k8s-clean k8s-status k8s-logs k8s-port-forward build push lint test setup-kubeconfig change-model demo-setup demo-clean ci-test ci-security-scan release-prepare clean clean-all version status install-hooks
 
 # Default target
 .DEFAULT_GOAL := help
@@ -141,7 +141,7 @@ local-clean: ## Clean up local Docker resources
 
 ##@ ☸️ Kubernetes Deployment
 
-k8s-deploy: validate ## Deploy Real Goose to Kubernetes cluster
+k8s-deploy: validate ## Deploy Real Goose to Kubernetes cluster (using local image)
 	@echo "$(BLUE)🚀 Deploying Real Goose to Kubernetes...$(NC)"
 	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
 		echo "$(RED)❌ ANTHROPIC_API_KEY environment variable is required$(NC)"; \
@@ -150,7 +150,23 @@ k8s-deploy: validate ## Deploy Real Goose to Kubernetes cluster
 	fi
 	@echo "$(YELLOW)Checking kubectl connectivity...$(NC)"
 	@kubectl cluster-info --request-timeout=5s > /dev/null || (echo "$(RED)❌ Cannot connect to Kubernetes cluster$(NC)" && exit 1)
-	@echo "$(YELLOW)Deploying with Helm...$(NC)"
+	@echo "$(YELLOW)Deploying with Helm (local image)...$(NC)"
+	@chmod +x scripts/deploy-k8s.sh
+	@USE_LOCAL_IMAGE=true ./scripts/deploy-k8s.sh
+	@echo ""
+	@echo "$(GREEN)✅ Deployment initiated!$(NC)"
+	@echo "$(YELLOW)Run 'make k8s-status' to check deployment status$(NC)"
+
+k8s-deploy-registry: validate ## Deploy Real Goose to Kubernetes cluster (using registry image)
+	@echo "$(BLUE)🚀 Deploying Real Goose to Kubernetes from registry...$(NC)"
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
+		echo "$(RED)❌ ANTHROPIC_API_KEY environment variable is required$(NC)"; \
+		echo "   Set it with: export ANTHROPIC_API_KEY='your-api-key-here'"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Checking kubectl connectivity...$(NC)"
+	@kubectl cluster-info --request-timeout=5s > /dev/null || (echo "$(RED)❌ Cannot connect to Kubernetes cluster$(NC)" && exit 1)
+	@echo "$(YELLOW)Deploying with Helm (registry image)...$(NC)"
 	@chmod +x scripts/deploy-k8s.sh
 	@./scripts/deploy-k8s.sh
 	@echo ""

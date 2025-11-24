@@ -4,9 +4,9 @@
 replicaCount: 1
 
 image:
-  repository: demo-k8s-chat-goose-web
-  pullPolicy: Never  # Use local Docker images for now
-  tag: "latest"
+  repository: ghcr.io/callmeradical/demo-k8s-chat/demo-k8s-chat-goose-web
+  pullPolicy: IfNotPresent  # Pull from registry if not present locally
+  tag: "main"  # Use main branch tag by default
 
 imagePullSecrets: []
 nameOverride: ""

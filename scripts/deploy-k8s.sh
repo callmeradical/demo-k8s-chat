@@ -47,9 +47,20 @@ kubectl create secret generic k8s-chat-anthropic \
 
 # Deploy using Helm
 echo "🚀 Deploying with Helm..."
-helm upgrade --install k8s-chat ./helm/k8s-chat \
-    --set secrets.anthropic.apiKey="$ANTHROPIC_API_KEY" \
-    --wait
+
+# Check if we should use local values (for local development)
+if [ "$USE_LOCAL_IMAGE" = "true" ]; then
+    echo "📦 Using local Docker image configuration..."
+    helm upgrade --install k8s-chat ./helm/k8s-chat \
+        --values values-local.yaml \
+        --set secrets.anthropic.apiKey="$ANTHROPIC_API_KEY" \
+        --wait
+else
+    echo "📦 Using registry image configuration..."
+    helm upgrade --install k8s-chat ./helm/k8s-chat \
+        --set secrets.anthropic.apiKey="$ANTHROPIC_API_KEY" \
+        --wait
+fi
 
 # Get service information
 echo "📋 Getting service information..."
