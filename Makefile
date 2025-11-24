@@ -1,7 +1,7 @@
 # Makefile for Real Goose K8s Chat
 # Professional interface for containerized Goose AI agent with Kubernetes integration
 
-.PHONY: help info validate local-start local-stop local-restart local-logs local-clean k8s-deploy k8s-deploy-registry k8s-clean k8s-status k8s-logs k8s-port-forward build push lint test setup-kubeconfig change-model demo-setup demo-clean ci-test ci-security-scan release-prepare clean clean-all version status install-hooks
+.PHONY: help info validate local-start local-stop local-restart local-logs local-clean helm-install helm-install-local helm-upgrade helm-upgrade-local helm-uninstall helm-template helm-template-local helm-lint helm-test helm-rollback helm-history helm-get-values helm-get-manifest helm-dry-run k8s-deploy k8s-deploy-registry k8s-clean k8s-status k8s-logs k8s-port-forward build push lint test setup-kubeconfig change-model demo-setup demo-clean ci-test ci-security-scan release-prepare clean clean-all version status install-hooks
 
 # Default target
 .DEFAULT_GOAL := help
@@ -138,6 +138,115 @@ local-clean: ## Clean up local Docker resources
 	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
 	@docker image rm $(DOCKER_IMAGE):latest 2>/dev/null || true
 	@echo "$(GREEN)✅ Local cleanup complete$(NC)"
+
+##@ 🎛️ Helm Operations
+
+helm-install: validate ## Install Helm chart (using registry image)
+	@echo "$(BLUE)⚙️  Installing Real Goose Helm chart...$(NC)"
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
+		echo "$(RED)❌ ANTHROPIC_API_KEY environment variable is required$(NC)"; \
+		echo "   Set it with: export ANTHROPIC_API_KEY='your-api-key-here'"; \
+		exit 1; \
+	fi
+	@helm install $(HELM_RELEASE) ./helm/k8s-chat \
+		--set secrets.anthropic.apiKey="$$ANTHROPIC_API_KEY" \
+		--namespace $(NAMESPACE) \
+		--wait
+	@echo "$(GREEN)✅ Helm chart installed successfully!$(NC)"
+
+helm-install-local: validate ## Install Helm chart using local Docker image
+	@echo "$(BLUE)⚙️  Installing Real Goose Helm chart (local image)...$(NC)"
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
+		echo "$(RED)❌ ANTHROPIC_API_KEY environment variable is required$(NC)"; \
+		echo "   Set it with: export ANTHROPIC_API_KEY='your-api-key-here'"; \
+		exit 1; \
+	fi
+	@helm install $(HELM_RELEASE) ./helm/k8s-chat \
+		--values values-local.yaml \
+		--set secrets.anthropic.apiKey="$$ANTHROPIC_API_KEY" \
+		--namespace $(NAMESPACE) \
+		--wait
+	@echo "$(GREEN)✅ Helm chart installed successfully with local image!$(NC)"
+
+helm-upgrade: ## Upgrade existing Helm release
+	@echo "$(BLUE)🔄 Upgrading Real Goose Helm release...$(NC)"
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
+		echo "$(RED)❌ ANTHROPIC_API_KEY environment variable is required$(NC)"; \
+		echo "   Set it with: export ANTHROPIC_API_KEY='your-api-key-here'"; \
+		exit 1; \
+	fi
+	@helm upgrade $(HELM_RELEASE) ./helm/k8s-chat \
+		--set secrets.anthropic.apiKey="$$ANTHROPIC_API_KEY" \
+		--namespace $(NAMESPACE) \
+		--wait
+	@echo "$(GREEN)✅ Helm release upgraded successfully!$(NC)"
+
+helm-upgrade-local: ## Upgrade existing Helm release with local image
+	@echo "$(BLUE)🔄 Upgrading Real Goose Helm release (local image)...$(NC)"
+	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
+		echo "$(RED)❌ ANTHROPIC_API_KEY environment variable is required$(NC)"; \
+		echo "   Set it with: export ANTHROPIC_API_KEY='your-api-key-here'"; \
+		exit 1; \
+	fi
+	@helm upgrade $(HELM_RELEASE) ./helm/k8s-chat \
+		--values values-local.yaml \
+		--set secrets.anthropic.apiKey="$$ANTHROPIC_API_KEY" \
+		--namespace $(NAMESPACE) \
+		--wait
+	@echo "$(GREEN)✅ Helm release upgraded successfully with local image!$(NC)"
+
+helm-uninstall: ## Uninstall Helm release
+	@echo "$(BLUE)🗑️  Uninstalling Real Goose Helm release...$(NC)"
+	@helm uninstall $(HELM_RELEASE) --namespace $(NAMESPACE)
+	@echo "$(GREEN)✅ Helm release uninstalled!$(NC)"
+
+helm-template: ## Generate Kubernetes manifests from Helm chart
+	@echo "$(BLUE)📄 Generating Helm template...$(NC)"
+	@helm template $(HELM_RELEASE) ./helm/k8s-chat \
+		--set secrets.anthropic.apiKey="test-api-key" \
+		--namespace $(NAMESPACE)
+
+helm-template-local: ## Generate Kubernetes manifests from Helm chart (local values)
+	@echo "$(BLUE)📄 Generating Helm template (local values)...$(NC)"
+	@helm template $(HELM_RELEASE) ./helm/k8s-chat \
+		--values values-local.yaml \
+		--set secrets.anthropic.apiKey="test-api-key" \
+		--namespace $(NAMESPACE)
+
+helm-lint: ## Lint Helm chart for syntax and best practices
+	@echo "$(BLUE)🔍 Linting Helm chart...$(NC)"
+	@helm lint ./helm/k8s-chat
+	@echo "$(GREEN)✅ Helm chart linting complete!$(NC)"
+
+helm-test: ## Run Helm chart tests
+	@echo "$(BLUE)🧪 Running Helm tests...$(NC)"
+	@helm test $(HELM_RELEASE) --namespace $(NAMESPACE)
+	@echo "$(GREEN)✅ Helm tests complete!$(NC)"
+
+helm-rollback: ## Rollback to previous Helm release
+	@echo "$(BLUE)↩️  Rolling back Helm release...$(NC)"
+	@helm rollback $(HELM_RELEASE) --namespace $(NAMESPACE)
+	@echo "$(GREEN)✅ Helm rollback complete!$(NC)"
+
+helm-history: ## Show Helm release history
+	@echo "$(BLUE)📚 Helm release history:$(NC)"
+	@helm history $(HELM_RELEASE) --namespace $(NAMESPACE)
+
+helm-get-values: ## Get current Helm release values
+	@echo "$(BLUE)⚙️  Current Helm release values:$(NC)"
+	@helm get values $(HELM_RELEASE) --namespace $(NAMESPACE)
+
+helm-get-manifest: ## Get deployed Helm manifest
+	@echo "$(BLUE)📋 Deployed Helm manifest:$(NC)"
+	@helm get manifest $(HELM_RELEASE) --namespace $(NAMESPACE)
+
+helm-dry-run: ## Dry run Helm install/upgrade
+	@echo "$(BLUE)🏃‍♂️ Helm dry run...$(NC)"
+	@helm upgrade $(HELM_RELEASE) ./helm/k8s-chat \
+		--set secrets.anthropic.apiKey="test-api-key" \
+		--namespace $(NAMESPACE) \
+		--dry-run \
+		--debug
 
 ##@ ☸️ Kubernetes Deployment
 
