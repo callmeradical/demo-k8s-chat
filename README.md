@@ -1,104 +1,173 @@
-# K8s Chat - Goose-Powered Kubernetes Agent
+# K8s Chat - Real Goose Powered Kubernetes Assistant
 
-A ChatGPT-like web interface for Kubernetes operations powered by Goose (the open-source AI agent framework) with Claude AI and custom K8s extensions.
+A containerized web interface for the real Goose AI agent framework, specifically configured for Kubernetes cluster management. This application packages the official Goose Rust binary in a Docker container with all necessary tools for intelligent Kubernetes operations.
+
+## 🎯 Getting Started
+
+**TL;DR - Quick Start:**
+```bash
+# 1. Check prerequisites
+make info
+
+# 2. Set API key
+export ANTHROPIC_API_KEY="your-key-here"
+
+# 3. Start locally
+make local-start
+
+# 4. Or deploy to Kubernetes
+make k8s-deploy
+```
+
+Visit `http://localhost:3000` and start chatting with your K8s assistant! 🦢
+
+## 🆕 Now with Real Goose!
+
+This application now uses the **actual Goose framework** (written in Rust) instead of a Python simulation, providing:
+
+- **Authentic Goose Experience**: Real tool integration and session management
+- **Built-in Extensions**: Developer tools, computer controller, extension manager, and more
+- **Proper Tool Execution**: Actual kubectl command execution via Goose's developer extension
+- **Rich Ecosystem**: Access to Goose's full extension marketplace
+- **Session Persistence**: Native Goose session storage and chat recall
 
 ## 🎯 Overview
 
-K8s Chat leverages the powerful Goose agent framework to provide an intelligent conversational interface for Kubernetes cluster management. By building on Goose's extensible architecture, we get robust agent capabilities, session management, and tool integration out of the box.
-
-This project creates a specialized K8s extension for Goose and provides a modern web interface for interacting with your clusters through natural language.
+K8s Chat leverages the powerful Goose agent framework to provide an intelligent conversational interface for Kubernetes cluster management. By using the official Goose binary, we get robust agent capabilities, session management, and tool integration out of the box.
 
 ### 🌟 Key Capabilities
 
-- **Goose-Powered AI Agent** - Leverages the robust Goose framework for agent capabilities
+- **Real Goose Framework** - Uses the actual Rust-based Goose binary (v1.14.2)
 - **Natural Language K8s Operations** - Ask questions like "Show me failing pods" or "Scale the frontend deployment to 5 replicas"
-- **Real-time Cluster Insights** - Live data from your cluster via MCP integration
+- **Real-time Cluster Insights** - Live kubectl execution via developer extension
 - **Intelligent Troubleshooting** - AI-powered analysis with Goose's reasoning capabilities
-- **Extensible Tool Framework** - Easy to add new K8s operations via Goose extensions
+- **Extensible Tool Framework** - Access to Goose's full extension ecosystem
 - **Session Management** - Persistent conversations with context awareness
 - **Streaming Responses** - Real-time token-by-token response generation
 
 ## ✨ Features
 
-- 🦢 **Goose Agent Framework** - Built on the proven open-source agent system
-- 🤖 **AI-Powered Kubernetes Assistant** - Chat with Claude about your K8s cluster
-- 🔄 **Real-time Streaming** - WebSocket-based streaming responses with typing indicators
-- 🔧 **K8s Extension** - Custom Goose extension for Kubernetes operations
-- 🔌 **MCP Integration** - Connect to Kubernetes MCP servers for live cluster data
-- 📱 **Modern UI** - ChatGPT-like interface built with React and Material-UI
-- 🐳 **Cloud Native** - Containerized and deployable via Helm
-- 🔒 **Secure** - Non-root containers, security contexts, and secret management
+- 🦢 **Real Goose Agent Framework** - Official Rust binary running in container
+- 🤖 **AI-Powered Kubernetes Assistant** - Chat with Claude/GPT/Gemini about your K8s cluster
+- 🔄 **Real-time Streaming** - Goose's built-in web interface with streaming responses
+- 🔧 **Developer Extension** - Native kubectl execution and shell access
+- 🔌 **Extension Ecosystem** - Computer controller, extension manager, chat recall, todo
+- 🐳 **Containerized** - Secure, reproducible environment with kubectl pre-installed
+- 🔒 **Secure** - Non-root containers, mounted kubeconfig, volume persistence
 - 📊 **Session Persistence** - Conversation history and context management
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    WebSocket    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │◄──────────────► │    Backend      │    │      Goose      │
-│   (React)       │                 │   (FastAPI)     │◄──►│   Agent Core    │
-│   - Chat UI     │                 │   - WebSocket   │    │   - Sessions    │
-│   - Streaming   │                 │   - Proxy       │    │   - Providers   │
-└─────────────────┘                 └─────────────────┘    └─────────────────┘
-                                                                     │
-                                             ┌───────────────────────┼───────────────────────┐
-                                             │                       │                       │
-                                    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-                                    │   Claude API    │    │  K8s Extension  │    │   K8s MCP       │
-                                    │   - Streaming   │    │   - kubectl     │    │   Server        │
-                                    │   - Sonnet 3.5  │    │   - Tools       │    │   - Live Data   │
-                                    └─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    HTTP/WebSocket   ┌─────────────────┐
+│   Web Browser   │◄──────────────────► │  Goose Web UI   │
+│   - User Input  │                     │  (Rust Binary)  │
+│   - Chat UI     │                     │  - Sessions     │
+│   - Streaming   │                     │  - Extensions   │
+└─────────────────┘                     └─────────────────┘
+                                                  │
+                           ┌──────────────────────┼──────────────────────┐
+                           │                      │                      │
+                  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+                  │  Claude/GPT/    │   │   Developer     │   │     kubectl     │
+                  │  Gemini API     │   │   Extension     │   │   (in container)│
+                  │  - Streaming    │   │   - Shell       │   │   - K8s API     │
+                  └─────────────────┘   └─────────────────┘   └─────────────────┘
 ```
+
+## Prerequisites
+
+- Docker and Docker Compose (for local testing)
+- Kubernetes cluster (for production deployment)
+- Helm 3+ (for Kubernetes deployment)
+- Anthropic API key (recommended) or other supported provider keys
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Prerequisites Check
+```bash
+make info  # Check environment and show quick start guide
+```
 
-- **Python 3.11+** and **Node.js 18+**
-- **Docker** for containerization
-- **Kubernetes cluster** (for deployment)
-- **Anthropic API key** ([Get one here](https://console.anthropic.com/))
-- **K8s MCP server** (optional - app works without it)
+### Option 1: Local Testing with Docker Compose (Recommended for development)
 
-### 🛠️ Development Setup
-
-1. **Clone and setup**
+1. **Clone and navigate**:
    ```bash
    git clone <repository-url>
-   cd k8s-chat
-   make install-deps
+   cd demo-k8s-chat
    ```
 
-2. **Configure environment**
+2. **Set your API key**:
    ```bash
-   cp backend/env.example backend/.env
-   # Edit backend/.env and add your Anthropic API key
+   export ANTHROPIC_API_KEY="sk-ant-api03-your-api-key-here"
    ```
 
-3. **Start services**
+3. **Start Real Goose locally**:
    ```bash
-   # Start both services (recommended)
-   make dev
-   
-   # Or start individually
-   make dev-backend  # http://localhost:8000
-   make dev-frontend # http://localhost:3000
+   make local-start
    ```
 
-4. **Access the application**
-   - **Frontend**: http://localhost:3000
-   - **Backend API**: http://localhost:8000
-   - **Goose Sessions**: Available via API
+4. **Access the interface**:
+   Visit `http://localhost:3000`
 
-### 💬 Example Conversations
+### Option 2: Kubernetes Deployment (Production)
+
+1. **Set your API key**:
+   ```bash
+   export ANTHROPIC_API_KEY="sk-ant-api03-your-api-key-here"
+   ```
+
+2. **Deploy to Kubernetes**:
+   ```bash
+   make k8s-deploy
+   ```
+
+3. **Check deployment status**:
+   ```bash
+   make k8s-status
+   ```
+
+### Available Make Commands
+
+View all available commands:
+```bash
+make help
+```
+
+**Local Development:**
+- `make local-start` - Start Real Goose with Docker Compose
+- `make local-stop` - Stop local services
+- `make local-logs` - View service logs
+- `make local-clean` - Clean up local resources
+
+**Kubernetes Operations:**
+- `make k8s-deploy` - Deploy to Kubernetes cluster
+- `make k8s-status` - Check deployment status
+- `make k8s-logs` - View deployment logs
+- `make k8s-clean` - Remove from cluster
+
+**Configuration:**
+- `make change-model` - Switch AI models dynamically
+- `make setup-kubeconfig` - Setup container kubeconfig
+
+**Development:**
+- `make build` - Build Docker image
+- `make lint` - Validate Helm chart
+- `make test` - Run tests and validations
+- `make clean` - Clean all resources
+
+## 💬 Usage Examples
+
+Once running, you can immediately start chatting with your Kubernetes assistant:
 
 ```
-User: What pods are running in the default namespace?
-Goose: I'll check your cluster for you. Let me use the kubectl tool to get the current pods...
-      [Uses k8s extension to execute: kubectl get pods -n default]
-      
+User: Show me all pods in the default namespace
+Goose: I'll check your cluster for you. Let me use kubectl to get the current pods...
+      [Executes: kubectl get pods -n default]
+
 User: The frontend deployment seems slow, can you investigate?
 Goose: I'll analyze the frontend deployment. Let me gather some information...
-       [Uses multiple tools: get deployment, check pod status, analyze events]
+       [Uses multiple kubectl commands: get deployment, describe pods, check events]
 
 User: Scale the api deployment to 3 replicas
 Goose: I'll scale the api deployment to 3 replicas for you.
@@ -108,242 +177,155 @@ Goose: I'll scale the api deployment to 3 replicas for you.
 
 ## ⚙️ Configuration
 
-### Backend Environment Variables
+### Environment Variables
 
 ```bash
 # Required
 ANTHROPIC_API_KEY=your-anthropic-api-key-here
 
-# Goose Configuration
-GOOSE_CONFIG_PATH=/path/to/goose/config
-GOOSE_SESSION_TIMEOUT=3600
-
-# Optional with sensible defaults
-K8S_MCP_SERVER_URL=http://localhost:8080      # K8s MCP server
-LOG_LEVEL=INFO                                # Logging level
-DEBUG=false                                   # Debug mode
+# Optional
+GOOSE_MODEL=claude-3-5-sonnet-20241022  # Default model
+GOOSE_PROVIDER=anthropic                # Default provider
 ```
 
 ### Goose Configuration
 
-Create a Goose configuration file for K8s Chat:
+The container includes a pre-configured `goose-config.yaml` with:
 
 ```yaml
-# goose-config.yaml
-providers:
-  anthropic:
-    api_key: ${ANTHROPIC_API_KEY}
-    model: claude-3-5-sonnet-20241022
-    max_tokens: 4096
+# Goose Configuration for K8s Chat Container
+ANTHROPIC_HOST: https://api.anthropic.com
+GOOSE_PROVIDER: anthropic
+GOOSE_MODEL: claude-3-5-sonnet-20241022
 
+# Extensions configuration
 extensions:
-  - name: k8s-extension
-    path: ./extensions/k8s
-    config:
-      mcp_server_url: ${K8S_MCP_SERVER_URL}
-      default_namespace: default
-      kubectl_context: current
-
-session:
-  timeout: 3600
-  persistence: true
-  storage: local
+  developer:
+    enabled: true           # kubectl and shell access
+  chatrecall:
+    enabled: true          # Search conversation history
+  todo:
+    enabled: true          # Task management
+  extensionmanager:
+    enabled: true          # Discover new extensions
+  computercontroller:
+    enabled: true          # File operations and automation
 ```
 
-## 🔌 K8s Extension for Goose
+## 🔌 Available Extensions
 
-The core of our system is a custom Goose extension that provides Kubernetes operations:
+The containerized Goose includes these powerful extensions:
 
-### Extension Structure
-```
-extensions/k8s/
-├── __init__.py
-├── tools/
-│   ├── kubectl.py          # kubectl command execution
-│   ├── cluster_info.py     # Cluster information
-│   ├── pods.py             # Pod operations
-│   ├── deployments.py      # Deployment management
-│   └── helm.py             # Helm chart operations
-├── resources/
-│   ├── cluster_status.py   # Live cluster data
-│   └── mcp_client.py       # MCP server integration
-└── extension.py            # Main extension class
-```
+### Developer Extension
+- **kubectl commands**: Direct Kubernetes cluster access
+- **Shell access**: Full bash shell for complex operations
+- **File operations**: Read/write files for configuration management
 
-### Available Tools
-- **kubectl**: Execute kubectl commands safely
-- **get_pods**: List and filter pods
-- **get_deployments**: List deployment information  
-- **scale_deployment**: Scale deployments up/down
-- **get_services**: List services and endpoints
-- **get_nodes**: Node status and information
-- **helm_list**: List Helm releases
-- **helm_install**: Install Helm charts
-- **cluster_health**: Overall cluster health check
+### Computer Controller
+- **Web scraping**: Gather information from web sources
+- **File caching**: Store and manage downloaded files
+- **Automation scripts**: Create and run shell/Ruby scripts
 
-## 🚀 Deployment
+### Extension Manager
+- **Discover extensions**: Find new tools for your workflow
+- **Enable/disable**: Manage which extensions are active
+- **Extension marketplace**: Access to community extensions
 
-### Using Helm (Recommended for Production)
+### Chat Recall
+- **Search history**: Find previous conversations and solutions
+- **Session summaries**: Quick overview of past work
+- **Context loading**: Restore previous conversation context
 
-1. **Build and push images**
-   ```bash
-   # Set your Docker Hub username
-   export DOCKERHUB_USERNAME=your-dockerhub-username
-   export VERSION=$(git rev-parse --short HEAD)
-   
-   # Build and push to Docker Hub
-   make build
-   make push
-   ```
+### Todo Management
+- **Task tracking**: Keep track of complex multi-step operations
+- **Progress updates**: Mark completed tasks and next steps
+- **Workflow management**: Organize Kubernetes operations
 
-2. **Deploy to Kubernetes**
-   ```bash
-   # The Helm chart will automatically create the k8s-chat namespace
-   
-   # Create secret for Anthropic API key (optional - chart can create it)
-   kubectl create secret generic anthropic-secret \
-     --from-literal=api-key=your-anthropic-api-key \
-     -n k8s-chat
-   
-   # Install via Helm (automatically creates namespace)
-   make helm-install
-   
-   # Check deployment status
-   make k8s-status
-   ```
+## 🔒 Security Features
 
-### Using Docker Compose (Development)
+- **Non-root container**: Runs as unprivileged user
+- **Read-only kubeconfig**: Your cluster credentials are mounted read-only
+- **Volume isolation**: Sessions and logs stored in isolated volumes
+- **API key security**: Environment variables for secure key storage
+- **Container isolation**: Sandboxed execution environment
 
-For local development and testing, you can use Docker Compose to run all services:
+## 🚀 Deployment Options
 
+### Local Development
 ```bash
-# Quick start with docker-compose
-cp docker-env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
-
-# Production-like environment
-make compose-up
-
-# OR Development environment with hot reload
-make compose-dev-up
-
-# Access at:
-# - Frontend: http://localhost:3000  
-# - Backend API: http://localhost:8000
-# - MCP Server: http://localhost:8080
-
-# View logs
-make compose-logs
-
-# Stop everything
-make compose-down
+./run-goose.sh
 ```
 
-#### Docker Compose Commands
-
+### Production Deployment
 ```bash
-# Start all services (production images)
-make compose-up
+# Build production image
+docker-compose -f docker-compose.goose.yml build
 
-# Start development environment (with hot reload)
-make compose-dev-up  
-
-# Stop services
-make compose-down
-make compose-dev-down
-
-# View logs from all services
-make compose-logs
-
-# Restart services
-make compose-restart
-
-# Build without starting
-make compose-build
+# Deploy with proper secrets management
+docker-compose -f docker-compose.goose.yml up -d
 ```
 
-## 🏗️ Development
+### Kubernetes Deployment
+```bash
+# Create secret for API key
+kubectl create secret generic anthropic-secret \
+  --from-literal=api-key=your-anthropic-api-key
+
+# Deploy using the provided manifests
+kubectl apply -f k8s/
+```
+
+## 🛠️ Development
 
 ### Project Structure
 
 ```
-k8s-chat/
-├── backend/                    # FastAPI backend + Goose integration
-│   ├── app/
-│   │   ├── api/               # REST API routes
-│   │   ├── config/            # Configuration
-│   │   ├── services/          # Business logic
-│   │   │   ├── goose_service.py      # Goose session management
-│   │   │   └── websocket_service.py  # WebSocket streaming
-│   │   └── main.py           # FastAPI app
-│   ├── extensions/           # Goose extensions
-│   │   └── k8s/             # K8s extension
-│   ├── requirements.txt      # Python dependencies
-│   └── Dockerfile           # Container definition
-├── frontend/                 # React frontend
-├── helm/                    # Helm chart
-└── README.md               # This file
+demo-k8s-chat/
+├── Makefile                     # Primary interface for all operations
+├── Dockerfile.goose             # Real Goose container definition
+├── docker-compose.goose.yml     # Docker Compose for local testing
+├── goose-config.yaml           # Goose configuration file
+├── scripts/                    # All operational scripts
+│   ├── run-goose.sh           # Local development script
+│   ├── deploy-k8s.sh          # Kubernetes deployment script
+│   ├── setup-kubeconfig.sh    # Kubernetes authentication setup
+│   └── change-model.sh        # Dynamic model configuration
+├── helm/k8s-chat/             # Helm chart for Kubernetes deployment
+│   ├── Chart.yaml            # Chart metadata
+│   ├── values.yaml           # Configuration values
+│   └── templates/            # Kubernetes manifests
+├── README.md                  # This documentation
+└── KUBERNETES_AUTH_SETUP.md   # Kubernetes authentication guide
 ```
 
-### Creating New K8s Tools
+### Customizing Extensions
 
-1. **Add a new tool file**:
-   ```python
-   # extensions/k8s/tools/my_tool.py
-   from goose.toolkit.base import Tool
-   
-   class MyK8sTool(Tool):
-       def __init__(self):
-           super().__init__(
-               name="my_k8s_tool",
-               description="Description of what this tool does"
-           )
-       
-       async def execute(self, **kwargs):
-           # Implementation
-           return result
-   ```
+You can modify `goose-config.yaml` to:
+- Enable/disable specific extensions
+- Configure extension parameters
+- Add custom extension configurations
 
-2. **Register in extension**:
-   ```python
-   # extensions/k8s/extension.py
-   from .tools.my_tool import MyK8sTool
-   
-   class K8sExtension(Extension):
-       def get_tools(self):
-           return [MyK8sTool(), ...]
-   ```
+### Building Custom Images
 
-## 🔒 Security & Production Considerations
+```bash
+# Build with custom Goose version
+docker build -f Dockerfile.goose \
+  --build-arg GOOSE_VERSION=1.14.2 \
+  -t k8s-chat-goose:custom .
 
-### Security Features
-- **API Keys**: Stored in Kubernetes secrets
-- **Container Security**: Non-root users, security contexts
-- **Goose Security**: Sandboxed tool execution
-- **RBAC**: Kubernetes role-based access control
-- **Network Policies**: Restrict pod-to-pod communication
-
-### Production Checklist
-- [ ] Configure Goose with production settings
-- [ ] Set up proper RBAC for K8s extension
-- [ ] Configure resource limits for agent operations
-- [ ] Enable audit logging for kubectl operations
-- [ ] Set up monitoring for Goose sessions
-- [ ] Configure backup for session data
+# Run with custom image
+docker run -p 3000:3000 \
+  -e ANTHROPIC_API_KEY=your-key \
+  -v ~/.kube:/home/goose/.kube:ro \
+  k8s-chat-goose:custom
+```
 
 ## 🤝 Contributing
 
-### Development Guidelines
-- Follow Goose extension development patterns
-- Add tests for new K8s tools
-- Update documentation for new capabilities
-- Ensure security for kubectl operations
-
-### Adding New Features
-1. **New K8s Tools**: Extend the K8s extension with new tools
-2. **UI Improvements**: Enhance the React frontend
-3. **Goose Integration**: Improve session management and streaming
-4. **MCP Integration**: Add new MCP server capabilities
+1. **Extension Development**: Create new Goose extensions for specific K8s operations
+2. **Configuration**: Improve the default Goose configuration
+3. **Documentation**: Add examples and use cases
+4. **Container Optimization**: Improve the Docker image size and security
 
 ## 📄 License
 
@@ -352,22 +334,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🗺️ Roadmap
 
 ### Current Features ✅
-- Goose agent framework integration
-- Custom K8s extension with basic tools
-- Real-time chat interface with streaming
-- Session management and persistence
-- Kubernetes deployment via Helm
+- Real Goose framework integration (Rust binary)
+- Containerized deployment with Docker
+- Pre-configured extensions for K8s operations
+- kubectl integration via developer extension
+- Session persistence and chat recall
 
 ### Planned Features 🚧
-- [ ] Advanced K8s operations (networking, storage)
-- [ ] GitOps workflow integration
-- [ ] Multi-cluster support via Goose contexts
-- [ ] Advanced troubleshooting tools
-- [ ] Performance monitoring integration
+- [ ] Kubernetes-specific extension development
+- [ ] Helm chart for K8s deployment
+- [ ] Multi-cluster support
+- [ ] Advanced monitoring integrations
 - [ ] Custom dashboard creation
-- [ ] Voice input/output support
-- [ ] Collaborative sessions
+- [ ] GitOps workflow integration
 
 ---
 
-**Built with 🦢 Goose and ❤️ for the Kubernetes community**
+**Built with 🦢 Real Goose and ❤️ for the Kubernetes community**

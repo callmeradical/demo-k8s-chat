@@ -1,0 +1,45 @@
+{
+  "name": "Real Goose K8s Chat Demo",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "version": "latest",
+      "helm": "latest",
+      "minikube": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "forwardPorts": [3000, 8080, 8001],
+  "portsAttributes": {
+    "3000": {
+      "label": "Real Goose K8s Chat",
+      "onAutoForward": "openPreview"
+    },
+    "8080": {
+      "label": "Kubernetes Dashboard"
+    },
+    "8001": {
+      "label": "kubectl proxy"
+    }
+  },
+
+  "postCreateCommand": ".devcontainer/setup.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-vscode.vscode-yaml",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  "remoteUser": "vscode"
+}

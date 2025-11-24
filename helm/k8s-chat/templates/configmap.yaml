@@ -1,5 +1,3 @@
-{{- if eq .Values.deploymentMode "single" }}
-# ConfigMap for single container mode
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,45 +5,69 @@ metadata:
   labels:
     {{- include "k8s-chat.labels" . | nindent 4 }}
 data:
-  # Anthropic configuration
-  ANTHROPIC_MODEL: {{ .Values.config.backend.anthropicModel | quote }}
-  ANTHROPIC_MAX_TOKENS: {{ .Values.config.backend.anthropicMaxTokens | quote }}
-  
-  # Goose configuration
-  GOOSE_PROVIDER: {{ .Values.config.backend.gooseProvider | quote }}
-  GOOSE_MODEL: {{ .Values.config.backend.gooseModel | quote }}
-  GOOSE_MAX_TOKENS: {{ .Values.config.backend.gooseMaxTokens | quote }}
-  
-  # MCP Server configuration
-  K8S_MCP_SERVER_URL: {{ .Values.config.backend.k8sMcpServerUrl | quote }}
-  
-  # Logging
-  LOG_LEVEL: {{ .Values.config.backend.logLevel | quote }}
-  DEBUG: {{ .Values.config.backend.debug | quote }}
-{{- end }}
+  config.yaml: |
+    # Goose Configuration for K8s Chat Container
+    ANTHROPIC_HOST: https://api.anthropic.com
+    GOOSE_PROVIDER: {{ .Values.goose.provider }}
+    GOOSE_MODEL: {{ .Values.goose.model }}
 
-{{- if eq .Values.deploymentMode "separate" }}
-# ConfigMap for separate container backend
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "k8s-chat.fullname" . }}-backend
-  labels:
-    {{- include "k8s-chat.labels" . | nindent 4 }}
-data:
-  # Anthropic configuration
-  ANTHROPIC_MODEL: {{ .Values.config.backend.anthropicModel | quote }}
-  ANTHROPIC_MAX_TOKENS: {{ .Values.config.backend.anthropicMaxTokens | quote }}
-  
-  # Goose configuration
-  GOOSE_PROVIDER: {{ .Values.config.backend.gooseProvider | quote }}
-  GOOSE_MODEL: {{ .Values.config.backend.gooseModel | quote }}
-  GOOSE_MAX_TOKENS: {{ .Values.config.backend.gooseMaxTokens | quote }}
-  
-  # MCP Server configuration
-  K8S_MCP_SERVER_URL: {{ .Values.config.backend.k8sMcpServerUrl | quote }}
-  
-  # Logging
-  LOG_LEVEL: {{ .Values.config.backend.logLevel | quote }}
-  DEBUG: {{ .Values.config.backend.debug | quote }}
-{{- end }}
+    # Extensions configuration
+    extensions:
+      {{- if .Values.goose.extensions.developer }}
+      developer:
+        enabled: true
+        type: builtin
+        name: developer
+        description: Code editing and shell access - includes kubectl for Kubernetes operations
+        display_name: Developer Tools
+        timeout: 300
+        bundled: true
+        available_tools: []
+      {{- end }}
+
+      {{- if .Values.goose.extensions.chatrecall }}
+      chatrecall:
+        enabled: true
+        type: platform
+        name: chatrecall
+        description: Search past conversations and load session summaries for contextual memory
+        bundled: true
+        available_tools: []
+      {{- end }}
+
+      {{- if .Values.goose.extensions.todo }}
+      todo:
+        enabled: true
+        type: platform
+        name: todo
+        description: Task management for complex operations
+        bundled: true
+        available_tools: []
+      {{- end }}
+
+      {{- if .Values.goose.extensions.extensionmanager }}
+      extensionmanager:
+        enabled: true
+        type: platform
+        name: Extension Manager
+        description: Discover and manage additional extensions
+        bundled: true
+        available_tools: []
+      {{- end }}
+
+      {{- if .Values.goose.extensions.computercontroller }}
+      computercontroller:
+        enabled: true
+        type: builtin
+        name: computercontroller
+        description: File operations, web scraping, and automation tools
+        display_name: Computer Controller
+        timeout: 300
+        bundled: true
+        available_tools: []
+      {{- end }}
+
+    # Kubernetes specific settings
+    kubernetes:
+      # The container will inherit kubectl config from mounted volumes or service account
+      default_namespace: default

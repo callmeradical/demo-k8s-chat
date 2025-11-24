@@ -1,0 +1,55 @@
+# Goose Configuration for K8s Chat Container
+ANTHROPIC_HOST: https://api.anthropic.com
+GOOSE_PROVIDER: anthropic
+GOOSE_MODEL: claude-haiku-3-0
+
+# Extensions configuration
+extensions:
+  developer:
+    enabled: true
+    type: builtin
+    name: developer
+    description: Code editing and shell access - includes kubectl for Kubernetes operations
+    display_name: Developer Tools
+    timeout: 300
+    bundled: true
+    available_tools: []
+
+  chatrecall:
+    enabled: true
+    type: platform
+    name: chatrecall
+    description: Search past conversations and load session summaries for contextual memory
+    bundled: true
+    available_tools: []
+
+  todo:
+    enabled: true
+    type: platform
+    name: todo
+    description: Task management for complex operations
+    bundled: true
+    available_tools: []
+
+  extensionmanager:
+    enabled: true
+    type: platform
+    name: Extension Manager
+    description: Discover and manage additional extensions
+    bundled: true
+    available_tools: []
+
+  computercontroller:
+    enabled: true
+    type: builtin
+    name: computercontroller
+    description: File operations, web scraping, and automation tools
+    display_name: Computer Controller
+    timeout: 300
+    bundled: true
+    available_tools: []
+
+# Kubernetes specific settings
+kubernetes:
+  # The container will inherit kubectl config from mounted volumes or service account
+  default_namespace: default

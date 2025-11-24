@@ -1,40 +1,12 @@
-# Default values for k8s-chat
+# Default values for k8s-chat with Real Goose
 
-# Deployment mode: "single" or "separate"
-# - single: One container with both frontend and backend
-# - separate: Separate containers for frontend and backend
-deploymentMode: "single"
-
-# Namespace configuration
-namespace:
-  create: true
-  name: "k8s-chat"
-  annotations: {}
-  labels: {}
-
-replicaCount:
-  # For single mode: only app.replicas is used
-  # For separate mode: backend/frontend replicas are used
-  app: 1
-  backend: 1
-  frontend: 1
+# Real Goose deployment - single container with web interface
+replicaCount: 1
 
 image:
-  # Single container mode
-  app:
-    repository: callmeradical/k8s-chat
-    pullPolicy: IfNotPresent
-    tag: "latest"
-  
-  # Separate containers mode (legacy support)
-  backend:
-    repository: your-dockerhub-username/k8s-chat-backend
-    pullPolicy: IfNotPresent
-    tag: "latest"
-  frontend:
-    repository: your-dockerhub-username/k8s-chat-frontend
-    pullPolicy: IfNotPresent
-    tag: "latest"
+  repository: demo-k8s-chat-goose-web
+  pullPolicy: Never  # Use local Docker images for now
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -59,22 +31,14 @@ securityContext:
   runAsUser: 1000
 
 service:
-  backend:
-    type: ClusterIP
-    port: 8000
-  frontend:
-    type: ClusterIP
-    port: 80
+  type: NodePort
+  port: 3000
+  nodePort: 30300  # Fixed NodePort for Goose web interface
 
 ingress:
-  enabled: true
+  enabled: false  # Disable ingress, use NodePort for simplicity
   className: ""
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  annotations: {}
   hosts:
     - host: k8s-chat.local
       paths:
@@ -83,25 +47,17 @@ ingress:
   tls: []
 
 resources:
-  backend:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 500m
-      memory: 512Mi
-  frontend:
-    limits:
-      cpu: 100m
-      memory: 128Mi
-    requests:
-      cpu: 50m
-      memory: 64Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
 
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 10
   targetCPUUtilizationPercentage: 80
 
 nodeSelector: {}
@@ -110,41 +66,82 @@ tolerations: []
 
 affinity: {}
 
-# Application configuration
-config:
-  # Service control for single container mode
-  singleMode:
-    enableBackend: true
-    enableFrontend: true
-    enableNginx: true
-  
-  backend:
-    # Anthropic configuration
-    anthropicApiKey: ""  # Should be provided via secret
-    anthropicModel: "claude-3-5-sonnet-20241022"
-    anthropicMaxTokens: 4096
-    
-    # Goose configuration
-    gooseProvider: "anthropic"
-    gooseModel: "claude-3-5-sonnet-20241022"
-    gooseMaxTokens: 4096
-    
-    # MCP Server configuration
-    k8sMcpServerUrl: "http://k8s-mcp-server:8080"
-    
-    # Logging
-    logLevel: "INFO"
-    debug: false
+# Real Goose configuration
+goose:
+  # Goose model configuration
+  provider: "anthropic"
+  model: "claude-haiku-3-0"  # High rate limits model
 
-# External dependencies (not deployed by this chart)
-externalServices:  
-  k8sMcpServer:
-    enabled: false
-    host: "k8s-mcp-server"
-    port: 8080
+  # Extensions configuration
+  extensions:
+    developer: true
+    chatrecall: true
+    todo: true
+    extensionmanager: true
+    computercontroller: true
 
-# Secrets
+# Secrets for API keys
 secrets:
   anthropic:
     create: true
-    apiKey: ""  # Base64 encoded API key
+    apiKey: ""  # Set this in your deployment
+
+# Environment variables for the goose container
+env:
+  GOOSE_CONFIG_DIR: "/home/goose/.config/goose"
+  GOOSE_DATA_DIR: "/home/goose/.local/share/goose"
+  GOOSE_LOGS_DIR: "/home/goose/.local/state/goose/logs"
+  KUBECONFIG: "/home/goose/.kube/config"
+
+# Volume mounts for configuration and logs
+volumes:
+  config:
+    enabled: true
+    mountPath: "/home/goose/.config/goose"
+  data:
+    enabled: true
+    mountPath: "/home/goose/.local/share/goose"
+  logs:
+    enabled: true
+    mountPath: "/home/goose/.local/state/goose/logs"
+  kubeconfig:
+    enabled: true
+    mountPath: "/home/goose/.kube"
+
+# Demo-focused settings for GitHub Codespaces
+demo:
+  # Use emptyDir volumes for simplicity (no persistent storage needed for demo)
+  ephemeralStorage: true
+
+  # Enable helpful demo features
+  showExamples: true
+  includeMetrics: false  # Keep it simple
+
+# GitHub Codespaces specific configuration
+codespaces:
+  # Port forwarding for Codespaces
+  ports:
+    - 3000    # Goose web interface
+
+  # Pre-configured demo scenarios
+  examples:
+    enabled: true
+    scenarios:
+      - "Show me all pods in default namespace"
+      - "Create a simple nginx deployment"
+      - "Scale the deployment to 3 replicas"
+      - "Check the status of all services"
+      - "Show me cluster information"
+
+# CI/CD Integration
+ci:
+  # Test with different Kubernetes versions
+  testK8sVersions:
+    - "1.28"
+    - "1.29"
+    - "1.30"
+
+  # Test with different Goose models
+  testModels:
+    - "claude-haiku-3-0"
+    - "claude-sonnet-3-5-latest"

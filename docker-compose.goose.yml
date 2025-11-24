@@ -1,0 +1,59 @@
+services:
+  # Real Goose Web Interface
+  goose-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.goose
+    container_name: k8s-chat-goose
+    ports:
+      - "3000:3000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      # Mount modified kubeconfig for Docker container access
+      - ${HOME}/.kube-docker:/home/goose/.kube:ro
+      # Mount Goose config as a volume for dynamic updates
+      - ./goose-config.yaml:/home/goose/.config/goose/config.yaml:rw
+      # Persist Goose sessions and logs
+      - goose-sessions:/home/goose/.local/share/goose
+      - goose-logs:/home/goose/.local/state/goose/logs
+      # Optional: mount your project directory for file operations
+      - .:/workspace:ro
+    # Add extra host to access Docker Desktop Kubernetes API
+    extra_hosts:
+      - "kubernetes.docker.internal:host-gateway"
+    networks:
+      - goose-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for session storage (if needed for future extensions)
+  redis:
+    image: redis:7-alpine
+    container_name: k8s-chat-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - goose-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  goose-sessions:
+  goose-logs:
+  redis-data:
+
+networks:
+  goose-network:
+    driver: bridge

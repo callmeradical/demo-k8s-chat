@@ -9,12 +9,12 @@ metadata:
 rules:
   # Basic cluster-wide read permissions
   - apiGroups: [""]
-    resources: 
+    resources:
       - nodes
       - namespaces
       - persistentvolumes
     verbs: ["get", "list", "watch"]
-  
+
   # Pod and service operations in all namespaces
   - apiGroups: [""]
     resources:
@@ -26,7 +26,7 @@ rules:
       - secrets
       - events
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  
+
   # Deployment and StatefulSet operations
   - apiGroups: ["apps"]
     resources:
@@ -35,28 +35,28 @@ rules:
       - daemonsets
       - replicasets
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "scale"]
-  
+
   # Ingress and networking
   - apiGroups: ["networking.k8s.io"]
     resources:
       - ingresses
       - networkpolicies
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  
+
   # RBAC resources (limited)
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources:
       - roles
       - rolebindings
     verbs: ["get", "list", "watch"]
-  
+
   # Storage resources
   - apiGroups: ["storage.k8s.io"]
     resources:
       - storageclasses
       - volumeattachments
     verbs: ["get", "list", "watch"]
-  
+
   # Metrics
   - apiGroups: ["metrics.k8s.io"]
     resources:
@@ -79,5 +79,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ include "k8s-chat.serviceAccountName" . }}
-    namespace: {{ .Values.namespace.name }}
+    namespace: {{ .Release.Namespace }}
 {{- end }}

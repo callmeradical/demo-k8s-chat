@@ -1,9 +1,9 @@
 apiVersion: v2
 name: k8s-chat
-description: A ChatGPT-like interface for Kubernetes operations using Claude and Goose AI Agent Framework
+description: Real Goose AI Agent for Kubernetes operations - containerized web interface with kubectl access
 type: application
-version: 1.0.0
-appVersion: "1.0.0"
+version: 2.0.0
+appVersion: "2.0.0"
 
 keywords:
   - kubernetes
