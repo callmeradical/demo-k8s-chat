@@ -350,4 +350,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with 🦢 Real Goose and ❤️ for the Kubernetes community**
+**Built with 🦢 Real  gguGoose and ❤️ for the Kubernetes community**
