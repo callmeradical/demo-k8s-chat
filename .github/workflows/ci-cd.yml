@@ -36,16 +36,6 @@ jobs:
       run: make ci-security-scan
       continue-on-error: true  # Don't fail CI on security warnings
 
-    - name: 📊 Upload security scan results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-scan-results
-        path: |
-          trivy-report.json
-          trivy-report.sarif
-        retention-days: 5
-
   test-k8s:
     name: ☸️ Test Kubernetes Integration
     runs-on: ubuntu-latest
