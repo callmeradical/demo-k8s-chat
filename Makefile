@@ -1,7 +1,7 @@
 # Makefile for Real Goose K8s Chat
 # Professional interface for containerized Goose AI agent with Kubernetes integration
 
-.PHONY: help info validate local-start local-stop local-restart local-logs local-clean k8s-deploy k8s-clean k8s-status k8s-logs k8s-port-forward build push lint test setup-kubeconfig change-model demo-setup demo-clean ci-test ci-security-scan release-prepare clean clean-all version status
+.PHONY: help info validate local-start local-stop local-restart local-logs local-clean k8s-deploy k8s-clean k8s-status k8s-logs k8s-port-forward build push lint test setup-kubeconfig change-model demo-setup demo-clean ci-test ci-security-scan release-prepare clean clean-all version status install-hooks
 
 # Default target
 .DEFAULT_GOAL := help
@@ -370,3 +370,7 @@ status: ## Show overall project status
 	fi
 	@echo ""
 	@$(MAKE) info
+
+install-hooks: ## Install/update git hooks for the streamlined architecture
+	@echo "$(BLUE)🔧 Installing updated git hooks...$(NC)"
+	@./scripts/update-git-hooks.sh
