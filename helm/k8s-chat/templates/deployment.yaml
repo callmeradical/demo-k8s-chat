@@ -5,18 +5,12 @@ metadata:
   labels:
     {{- include "k8s-chat.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "k8s-chat.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
         {{- include "k8s-chat.selectorLabels" . | nindent 8 }}
     spec:
@@ -47,6 +41,18 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
+            {{- if .Values.secrets.additional }}
+            {{- range .Values.secrets.additional }}
+            - name: {{ .envName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
+                  {{- if .optional }}
+                  optional: {{ .optional }}
+                  {{- end }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /
@@ -70,10 +76,6 @@ spec:
             - name: goose-data
               mountPath: {{ .Values.volumes.data.mountPath }}
             {{- end }}
-            {{- if .Values.volumes.logs.enabled }}
-            - name: goose-logs
-              mountPath: {{ .Values.volumes.logs.mountPath }}
-            {{- end }}
             {{- if .Values.volumes.kubeconfig.enabled }}
             - name: kubeconfig
               mountPath: {{ .Values.volumes.kubeconfig.mountPath }}
@@ -89,24 +91,8 @@ spec:
         - name: goose-data
           emptyDir: {}
         {{- end }}
-        {{- if .Values.volumes.logs.enabled }}
-        - name: goose-logs
-          emptyDir: {}
-        {{- end }}
         {{- if .Values.volumes.kubeconfig.enabled }}
         - name: kubeconfig
           secret:
             secretName: {{ include "k8s-chat.fullname" . }}-kubeconfig
         {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}

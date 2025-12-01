@@ -31,6 +31,9 @@ export ANTHROPIC_API_KEY="your-key-here"
 helm install k8s-chat-demo oci://docker.io/YOUR_DOCKERHUB_USERNAME/k8s-chat \
   --set secrets.anthropic.apiKey="$ANTHROPIC_API_KEY" \
   --namespace demo --create-namespace
+
+# Option 3: Deploy with ArgoCD (see ARGOCD-DEPLOYMENT.md)
+kubectl apply -f argocd-application.yaml
 ```
 
 ## 💬 Usage

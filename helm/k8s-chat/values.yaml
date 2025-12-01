@@ -52,6 +52,36 @@ secrets:
   anthropic:
     create: true
     apiKey: ""
+    # External secrets configuration for ArgoCD/GitOps
+    external: false
+    secretStore: "vault-backend"  # Name of your SecretStore
+    externalKey: "anthropic/api-keys"  # Path in external secret manager
+    externalProperty: "api-key"  # Property name in the external secret
+    refreshInterval: "1h"  # How often to refresh from external source
+    annotations: {}
+      # argocd.argoproj.io/sync-options: Delete=false  # Prevent ArgoCD from deleting
+
+  # Additional secrets for the service to read
+  additional: []
+    # Example: Create a new secret
+    # - name: "database-credentials"
+    #   create: true
+    #   envName: "DATABASE_PASSWORD"  # Environment variable name
+    #   secretName: "database-credentials"  # K8s secret name
+    #   secretKey: "password"  # Key within the secret
+    #   type: "Opaque"
+    #   data:
+    #     password: "my-secret-password"
+    #     username: "my-username"
+    #   annotations: {}
+
+    # Example: Reference existing secret
+    # - name: "external-api-key"
+    #   create: false
+    #   envName: "EXTERNAL_API_KEY"
+    #   secretName: "existing-secret"  # Pre-existing secret in cluster
+    #   secretKey: "api-key"
+    #   optional: true  # Don't fail if secret doesn't exist
 
 # Environment configuration
 env:

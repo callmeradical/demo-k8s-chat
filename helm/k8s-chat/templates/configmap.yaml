@@ -6,14 +6,13 @@ metadata:
     {{- include "k8s-chat.labels" . | nindent 4 }}
 data:
   config.yaml: |
-    # Goose Configuration for K8s Chat Container
+    # k8s-chat demo configuration
     ANTHROPIC_HOST: https://api.anthropic.com
     GOOSE_PROVIDER: {{ .Values.goose.provider }}
     GOOSE_MODEL: {{ .Values.goose.model }}
 
-    # Extensions configuration
+    # Enable all extensions for demo
     extensions:
-      {{- if .Values.goose.extensions.developer }}
       developer:
         enabled: true
         type: builtin
@@ -23,19 +22,15 @@ data:
         timeout: 300
         bundled: true
         available_tools: []
-      {{- end }}
 
-      {{- if .Values.goose.extensions.chatrecall }}
       chatrecall:
         enabled: true
         type: platform
         name: chatrecall
-        description: Search past conversations and load session summaries for contextual memory
+        description: Search past conversations and load session summaries
         bundled: true
         available_tools: []
-      {{- end }}
 
-      {{- if .Values.goose.extensions.todo }}
       todo:
         enabled: true
         type: platform
@@ -43,9 +38,7 @@ data:
         description: Task management for complex operations
         bundled: true
         available_tools: []
-      {{- end }}
 
-      {{- if .Values.goose.extensions.extensionmanager }}
       extensionmanager:
         enabled: true
         type: platform
@@ -53,9 +46,7 @@ data:
         description: Discover and manage additional extensions
         bundled: true
         available_tools: []
-      {{- end }}
 
-      {{- if .Values.goose.extensions.computercontroller }}
       computercontroller:
         enabled: true
         type: builtin
@@ -65,9 +56,7 @@ data:
         timeout: 300
         bundled: true
         available_tools: []
-      {{- end }}
 
     # Kubernetes specific settings
     kubernetes:
-      # The container will inherit kubectl config from mounted volumes or service account
       default_namespace: default
