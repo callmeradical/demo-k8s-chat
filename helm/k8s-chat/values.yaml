@@ -1,12 +1,10 @@
-# Default values for k8s-chat with Real Goose
-
-# Real Goose deployment - single container with web interface
+# k8s-chat demo values
 replicaCount: 1
 
 image:
-  repository: callmeradical/demo-k8s-chat  # Docker Hub repository
-  pullPolicy: IfNotPresent  # Pull from registry if not present locally
-  tag: "main"  # Use main branch tag by default
+  repository: callmeradical/demo-k8s-chat
+  pullPolicy: IfNotPresent
+  tag: "main"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -16,8 +14,6 @@ serviceAccount:
   create: true
   annotations: {}
   name: ""
-
-podAnnotations: {}
 
 podSecurityContext:
   fsGroup: 1000
@@ -33,18 +29,10 @@ securityContext:
 service:
   type: NodePort
   port: 3000
-  nodePort: 30302  # Fixed NodePort for Goose web interface
+  nodePort: 30302
 
 ingress:
-  enabled: false  # Disable ingress, use NodePort for simplicity
-  className: ""
-  annotations: {}
-  hosts:
-    - host: k8s-chat.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
+  enabled: false
 
 resources:
   limits:
@@ -54,46 +42,24 @@ resources:
     cpu: 200m
     memory: 256Mi
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-# Real Goose configuration
+# Goose AI configuration
 goose:
-  # Goose model configuration
   provider: "anthropic"
-  model: "claude-haiku-3-0"  # High rate limits model
+  model: "claude-haiku-3-0"
 
-  # Extensions configuration
-  extensions:
-    developer: true
-    chatrecall: true
-    todo: true
-    extensionmanager: true
-    computercontroller: true
-
-# Secrets for API keys
+# API key secret
 secrets:
   anthropic:
     create: true
-    apiKey: ""  # Set this in your deployment
+    apiKey: ""
 
-# Environment variables for the goose container
+# Environment configuration
 env:
   GOOSE_CONFIG_DIR: "/home/goose/.config/goose"
   GOOSE_DATA_DIR: "/home/goose/.local/share/goose"
-  GOOSE_LOGS_DIR: "/home/goose/.local/state/goose/logs"
   KUBECONFIG: "/home/goose/.kube/config"
 
-# Volume mounts for configuration and logs
+# Volume mounts
 volumes:
   config:
     enabled: true
@@ -101,47 +67,6 @@ volumes:
   data:
     enabled: true
     mountPath: "/home/goose/.local/share/goose"
-  logs:
-    enabled: true
-    mountPath: "/home/goose/.local/state/goose/logs"
   kubeconfig:
     enabled: true
     mountPath: "/home/goose/.kube"
-
-# Demo-focused settings for GitHub Codespaces
-demo:
-  # Use emptyDir volumes for simplicity (no persistent storage needed for demo)
-  ephemeralStorage: true
-
-  # Enable helpful demo features
-  showExamples: true
-  includeMetrics: false  # Keep it simple
-
-# GitHub Codespaces specific configuration
-codespaces:
-  # Port forwarding for Codespaces
-  ports:
-    - 3000    # Goose web interface
-
-  # Pre-configured demo scenarios
-  examples:
-    enabled: true
-    scenarios:
-      - "Show me all pods in default namespace"
-      - "Create a simple nginx deployment"
-      - "Scale the deployment to 3 replicas"
-      - "Check the status of all services"
-      - "Show me cluster information"
-
-# CI/CD Integration
-ci:
-  # Test with different Kubernetes versions
-  testK8sVersions:
-    - "1.28"
-    - "1.29"
-    - "1.30"
-
-  # Test with different Goose models
-  testModels:
-    - "claude-haiku-3-0"
-    - "claude-sonnet-3-5-latest"

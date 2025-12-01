@@ -1,6 +1,6 @@
 apiVersion: v2
 name: k8s-chat
-description: Real Goose AI Agent for Kubernetes operations - containerized web interface with kubectl access
+description: Kubernetes chat assistant demo using Goose AI framework
 type: application
 version: 2.0.0
 appVersion: "2.0.0"
@@ -9,15 +9,14 @@ keywords:
   - kubernetes
   - chat
   - ai
-  - claude
+  - demo
   - goose
-  - mcp
 
 maintainers:
-  - name: Your Name
-    email: your-email@example.com
+  - name: Demo Project
+    email: demo@example.com
 
 sources:
-  - https://github.com/your-org/k8s-chat
+  - https://github.com/callmeradical/demo-k8s-chat
 
 dependencies: []
