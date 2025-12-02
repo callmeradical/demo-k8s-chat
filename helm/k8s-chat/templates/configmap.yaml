@@ -6,10 +6,21 @@ metadata:
     {{- include "k8s-chat.labels" . | nindent 4 }}
 data:
   config.yaml: |
-    # k8s-chat demo configuration
+    # k8s-chat demo configuration with verbose logging
     ANTHROPIC_HOST: https://api.anthropic.com
     GOOSE_PROVIDER: {{ .Values.goose.provider }}
     GOOSE_MODEL: {{ .Values.goose.model }}
+
+    # Logging configuration
+    logging:
+      level: {{ .Values.goose.logging.level }}
+      verbose: {{ .Values.goose.logging.verbose }}
+      format: {{ .Values.goose.logging.format }}
+
+    # Web interface settings
+    web:
+      verbose: true
+      debug: true
 
     # Enable all extensions for demo
     extensions:

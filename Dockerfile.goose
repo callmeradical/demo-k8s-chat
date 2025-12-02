@@ -62,11 +62,12 @@ ENV GOOSE_CONFIG_DIR=/home/goose/.config/goose
 ENV GOOSE_DATA_DIR=/home/goose/.local/share/goose
 ENV GOOSE_LOGS_DIR=/home/goose/.local/state/goose/logs
 ENV PATH=/usr/local/bin:$PATH
-ENV KUBECONFIG=/home/goose/.kube/config
+ENV RUST_LOG=debug
+ENV GOOSE_LOG_LEVEL=debug
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
-# Start Goose web interface
-CMD ["goose", "web", "--host", "0.0.0.0", "--port", "3000"]
+# Start Goose web interface with verbose logging
+CMD ["goose", "web", "--host", "0.0.0.0", "--port", "3000", "-vvv"]

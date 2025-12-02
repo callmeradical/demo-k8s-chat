@@ -34,6 +34,10 @@ helm install k8s-chat-demo oci://docker.io/YOUR_DOCKERHUB_USERNAME/k8s-chat \
 
 # Option 3: Deploy with ArgoCD (see ARGOCD-DEPLOYMENT.md)
 kubectl apply -f argocd-application.yaml
+
+# Option 4: Codespace/Demo - Deploy then inject API key
+export ANTHROPIC_API_KEY="your-key-here"
+make demo-inject-api-key  # Deploys and injects API key dynamically
 ```
 
 ## 💬 Usage

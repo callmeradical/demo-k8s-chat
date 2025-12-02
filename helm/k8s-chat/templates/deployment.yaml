@@ -41,6 +41,10 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
+            - name: RUST_LOG
+              value: "debug"
+            - name: GOOSE_LOG_LEVEL
+              value: {{ .Values.goose.logging.level | quote }}
             {{- if .Values.secrets.additional }}
             {{- range .Values.secrets.additional }}
             - name: {{ .envName }}

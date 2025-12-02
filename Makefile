@@ -387,10 +387,40 @@ demo-setup: ## Setup demo environment with sample workloads
 	@echo "  - Scale the demo-nginx deployment to 5 replicas"
 	@echo "  - Show me the service endpoints"
 
+demo-inject-api-key: ## Inject API key into running k8s-chat demo (for codespaces)
+	@echo "$(BLUE)🔑 Injecting API key into k8s-chat demo...$(NC)"
+	@chmod +x scripts/demo-inject-api-key.sh
+	@./scripts/demo-inject-api-key.sh
+
 demo-clean: ## Clean up demo environment
 	@echo "$(BLUE)🧹 Cleaning demo environment...$(NC)"
 	@kubectl delete namespace demo --ignore-not-found=true
 	@echo "$(GREEN)✅ Demo environment cleaned$(NC)"
+
+demo-cleanup: ## Complete cleanup of k8s-chat demo and secrets
+	@echo "$(BLUE)🧹 Complete k8s-chat demo cleanup...$(NC)"
+	@chmod +x scripts/demo-cleanup.sh
+	@./scripts/demo-cleanup.sh
+
+debug-deployment: ## Debug k8s-chat deployment issues
+	@echo "$(BLUE)🔍 Debugging k8s-chat deployment...$(NC)"
+	@chmod +x scripts/debug-deployment.sh
+	@./scripts/debug-deployment.sh
+
+enable-verbose: ## Enable verbose logging for k8s-chat
+	@echo "$(BLUE)🔊 Enabling verbose logging...$(NC)"
+	@chmod +x scripts/toggle-verbose-logging.sh
+	@./scripts/toggle-verbose-logging.sh k8s-chat k8s-chat enable
+
+disable-verbose: ## Disable verbose logging for k8s-chat
+	@echo "$(BLUE)🔇 Disabling verbose logging...$(NC)"
+	@chmod +x scripts/toggle-verbose-logging.sh
+	@./scripts/toggle-verbose-logging.sh k8s-chat k8s-chat disable
+
+logging-status: ## Check current logging status
+	@echo "$(BLUE)📋 Checking logging status...$(NC)"
+	@chmod +x scripts/toggle-verbose-logging.sh
+	@./scripts/toggle-verbose-logging.sh k8s-chat k8s-chat status
 
 ci-test: ## Run CI/CD tests (Docker + Helm validation)
 	@echo "$(BLUE)🧪 Running CI/CD tests...$(NC)"

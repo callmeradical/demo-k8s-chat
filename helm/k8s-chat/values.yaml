@@ -50,6 +50,11 @@ resources:
 goose:
   provider: "anthropic"
   model: "claude-haiku-3-0"
+  # Logging configuration
+  logging:
+    level: "debug"  # debug, info, warn, error
+    verbose: true
+    format: "json"  # json or plain
 
 # API key secret
 secrets:
