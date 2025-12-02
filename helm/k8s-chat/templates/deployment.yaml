@@ -76,11 +76,6 @@ spec:
             - name: goose-data
               mountPath: {{ .Values.volumes.data.mountPath }}
             {{- end }}
-            {{- if .Values.volumes.kubeconfig.enabled }}
-            - name: kubeconfig
-              mountPath: {{ .Values.volumes.kubeconfig.mountPath }}
-              readOnly: true
-            {{- end }}
       volumes:
         {{- if .Values.volumes.config.enabled }}
         - name: goose-config
@@ -90,9 +85,4 @@ spec:
         {{- if .Values.volumes.data.enabled }}
         - name: goose-data
           emptyDir: {}
-        {{- end }}
-        {{- if .Values.volumes.kubeconfig.enabled }}
-        - name: kubeconfig
-          secret:
-            secretName: {{ include "k8s-chat.fullname" . }}-kubeconfig
         {{- end }}

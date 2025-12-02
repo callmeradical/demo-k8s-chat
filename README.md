@@ -47,11 +47,19 @@ The assistant uses kubectl commands to interact with your cluster in real-time.
 
 ## ⚙️ Configuration
 
-Set environment variables:
+**Authentication:**
+- Local clusters: Works with Docker Desktop, Minikube, Kind
+- Remote clusters: Uses Kubernetes service accounts (no kubeconfig needed)
+- Cloud providers: Works with EKS, GKE, AKS using standard cloud authentication
+
+**Environment variables:**
 ```bash
 ANTHROPIC_API_KEY=your-api-key-here
 GOOSE_MODEL=claude-3-5-sonnet-20241022  # Optional
 ```
+
+**For remote clusters:**
+The application automatically uses Kubernetes service account tokens for cluster access. No kubeconfig mounting required - this is handled by the RBAC configuration in the Helm chart.
 
 ## 🛠️ Development
 

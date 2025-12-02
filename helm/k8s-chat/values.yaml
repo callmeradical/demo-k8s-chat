@@ -14,6 +14,10 @@ serviceAccount:
   create: true
   annotations: {}
   name: ""
+  # Note: k8s-chat uses service account authentication for Kubernetes API access
+  # This is the recommended approach for applications running inside Kubernetes
+  # The service account token is automatically mounted at /var/run/secrets/kubernetes.io/serviceaccount/
+  # and kubectl/client-go will automatically use it for authentication
 
 podSecurityContext:
   fsGroup: 1000
@@ -87,7 +91,6 @@ secrets:
 env:
   GOOSE_CONFIG_DIR: "/home/goose/.config/goose"
   GOOSE_DATA_DIR: "/home/goose/.local/share/goose"
-  KUBECONFIG: "/home/goose/.kube/config"
 
 # Volume mounts
 volumes:
@@ -97,6 +100,3 @@ volumes:
   data:
     enabled: true
     mountPath: "/home/goose/.local/share/goose"
-  kubeconfig:
-    enabled: true
-    mountPath: "/home/goose/.kube"

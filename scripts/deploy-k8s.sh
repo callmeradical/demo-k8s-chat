@@ -29,14 +29,52 @@ fi
 
 echo "✅ Prerequisites check passed"
 
-# Build the Docker image locally (for kind/minikube)
-echo "🔨 Building Docker image..."
-docker build -f Dockerfile.goose -t demo-k8s-chat-goose-web:latest .
+# Determine deployment strategy based on cluster type
+CURRENT_CONTEXT=$(kubectl config current-context)
+CLUSTER_SERVER=$(kubectl config view --minify --output jsonpath='{.clusters[0].cluster.server}')
 
-# Load image into kind cluster if using kind
-if kubectl config current-context | grep -q "kind-"; then
-    echo "🔄 Loading image into kind cluster..."
-    kind load docker-image demo-k8s-chat-goose-web:latest
+echo "📋 Deployment context: $CURRENT_CONTEXT"
+echo "🌐 Cluster server: $CLUSTER_SERVER"
+
+# Detect cluster type and handle image strategy
+if echo "$CLUSTER_SERVER" | grep -q "127.0.0.1\|localhost"; then
+    echo "🏠 Local cluster detected - building and loading image locally"
+
+    # Build the Docker image locally
+    echo "🔨 Building Docker image..."
+    docker build -f Dockerfile.goose -t demo-k8s-chat-goose-web:latest .
+
+    # Load image into local cluster
+    if echo "$CURRENT_CONTEXT" | grep -q "kind-"; then
+        echo "🔄 Loading image into kind cluster..."
+        kind load docker-image demo-k8s-chat-goose-web:latest
+    elif echo "$CURRENT_CONTEXT" | grep -q "minikube"; then
+        echo "🔄 Loading image into minikube..."
+        minikube image load demo-k8s-chat-goose-web:latest
+    else
+        echo "✅ Image built for local Docker Desktop cluster"
+    fi
+
+    USE_LOCAL_IMAGE="true"
+
+else
+    echo "☁️  Remote cluster detected - will use registry image"
+    echo "⚠️  Make sure the image is pushed to a registry accessible by the cluster"
+
+    # For remote clusters, we should use registry images
+    USE_LOCAL_IMAGE="false"
+
+    # Build and tag for potential registry push
+    if [ -n "$REGISTRY" ]; then
+        echo "🔨 Building and tagging image for registry: $REGISTRY"
+        docker build -f Dockerfile.goose -t "$REGISTRY/demo-k8s-chat-goose-web:latest" .
+        echo "📤 Pushing to registry..."
+        docker push "$REGISTRY/demo-k8s-chat-goose-web:latest"
+    else
+        echo "⚠️  No REGISTRY environment variable set for remote deployment"
+        echo "   Either set REGISTRY and push the image, or use local values for testing"
+        USE_LOCAL_IMAGE="true"
+    fi
 fi
 
 # Create secret for API key
