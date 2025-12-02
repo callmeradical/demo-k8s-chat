@@ -1,76 +1,90 @@
-# K8s Chat - Kubernetes Assistant Demo
+# 🦢 K8s Chat
 
-A containerized chat interface using the Goose AI framework for Kubernetes cluster management.
+**Kubernetes AI Assistant** - A simple demo that creates a Kubernetes secret from an environment variable and launches Goose for cluster management.
 
 ## 🚀 Quick Start
 
-**Prerequisites:**
-- Docker and kubectl installed
-- Kubernetes cluster access
-- Anthropic API key
-
-**Run locally:**
+### Local Development
 ```bash
 # 1. Set your API key
-export ANTHROPIC_API_KEY="your-key-here"
+export ANTHROPIC_API_KEY="sk-ant-..."
 
-# 2. Start the demo
-make local-start
-
-# 3. Visit http://localhost:3000
+# 2. Run locally (creates secret + launches goose)
+make run-local
 ```
 
-**Deploy to Kubernetes:**
+### Kubernetes Deployment
 ```bash
-# Option 1: Use local Helm chart
-make k8s-deploy
-make k8s-status
+# 1. Set your API key
+export ANTHROPIC_API_KEY="sk-ant-..."
 
-# Option 2: Use published Helm chart from DockerHub
-export ANTHROPIC_API_KEY="your-key-here"
-helm install k8s-chat-demo oci://docker.io/YOUR_DOCKERHUB_USERNAME/k8s-chat \
-  --set secrets.anthropic.apiKey="$ANTHROPIC_API_KEY" \
-  --namespace demo --create-namespace
+# 2. Deploy to Kubernetes
+make helm-install
 
-# Option 3: Deploy with ArgoCD (see ARGOCD-DEPLOYMENT.md)
-kubectl apply -f argocd-application.yaml
-
-# Option 4: Codespace/Demo - Deploy then inject API key
-export ANTHROPIC_API_KEY="your-key-here"
-make demo-inject-api-key  # Deploys and injects API key dynamically
+# 3. Access the service
+kubectl port-forward svc/k8s-chat 3000:3000
 ```
 
-## 💬 Usage
+Then visit http://localhost:3000
 
-Chat with your Kubernetes assistant:
-- "Show me all pods in the default namespace"
-- "Scale the frontend deployment to 3 replicas"
-- "What's wrong with my failing pods?"
+## 📋 Available Commands
 
-The assistant uses kubectl commands to interact with your cluster in real-time.
+| Command | Description |
+|---------|-------------|
+| `make setup` | Verify prerequisites |
+| `make build` | Build Docker image |
+| `make create-secret` | Create Kubernetes secret from ANTHROPIC_API_KEY |
+| `make run-local` | Run locally with Goose |
+| `make helm-install` | Deploy to Kubernetes |
+| `make helm-uninstall` | Remove from Kubernetes |
+| `make clean` | Clean up local images |
 
-## ⚙️ Configuration
+## 🏗️ How It Works
 
-**Authentication:**
-- Local clusters: Works with Docker Desktop, Minikube, Kind
-- Remote clusters: Uses Kubernetes service accounts (no kubeconfig needed)
-- Cloud providers: Works with EKS, GKE, AKS using standard cloud authentication
+1. **Secret Creation**: The `setup-and-run.sh` script creates a Kubernetes secret from your `ANTHROPIC_API_KEY` environment variable
+2. **Goose Configuration**: Creates a simple YAML config for the Anthropic provider
+3. **Web Interface**: Launches Goose's built-in web server on port 3000
+4. **Kubernetes Access**: Uses service account authentication for cluster access
 
-**Environment variables:**
-```bash
-ANTHROPIC_API_KEY=your-api-key-here
-GOOSE_MODEL=claude-3-5-sonnet-20241022  # Optional
+## ⚡ Prerequisites
+
+- **ANTHROPIC_API_KEY** environment variable set
+- **kubectl** configured for your cluster
+- **helm** installed (for Kubernetes deployment)
+- **Docker** (for building images)
+
+## 📁 Key Files
+
+- `setup-and-run.sh` - Main setup script that creates secret and launches Goose
+- `Dockerfile` - Simple container with Goose + kubectl
+- `Makefile` - Build and deployment commands
+- `helm/k8s-chat/` - Helm chart for Kubernetes deployment
+
+## 🔒 Security Note
+
+The API key is:
+- ✅ Collected from environment variable (not stored in Git)
+- ✅ Stored as a Kubernetes secret
+- ✅ Never logged or exposed in container images
+
+## 📁 Project Structure
+
+```
+├── helm/                 # Helm charts
+│   └── k8s-chat/                    # Main Helm chart
+├── deployments/          # Deployment configurations
+│   ├── docker/           # Docker Compose files
+│   ├── argocd/           # ArgoCD applications
+│   └── k8s/              # Kubernetes resources
+├── docs/                 # Documentation
+│   ├── ARCHITECTURE.md              # Detailed architecture
+│   └── KUBERNETES_AUTH_SETUP.md    # K8s auth guide
+├── .devcontainer/        # Development container config
+├── setup-and-run.sh     # Main setup and launch script
+├── Dockerfile            # Container build definition
+└── Makefile             # Development commands
 ```
 
-**For remote clusters:**
-The application automatically uses Kubernetes service account tokens for cluster access. No kubeconfig mounting required - this is handled by the RBAC configuration in the Helm chart.
+---
 
-## 🛠️ Development
-
-Key files:
-- `Makefile` - Main commands (`make help` for full list)
-- `Dockerfile.goose` - Container definition
-- `goose-config.yaml` - AI agent configuration
-- `helm/k8s-chat/` - Kubernetes deployment
-
-Run `make info` to check prerequisites and see available commands.
+**Perfect for demos and development** • Simple setup • Works with any Kubernetes cluster

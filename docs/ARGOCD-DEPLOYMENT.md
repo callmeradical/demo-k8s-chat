@@ -84,7 +84,7 @@ kubectl apply -f argocd-application.yaml
 ### Using Sealed Secrets
 ```bash
 # 1. Create and apply the sealed secret
-kubectl apply -f examples/sealed-secret.yaml
+kubectl apply -f sealed-secret.yaml
 
 # 2. Deploy with secrets.anthropic.create=false
 kubectl apply -f argocd-application.yaml

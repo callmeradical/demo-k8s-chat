@@ -35,58 +35,23 @@ spec:
             - name: ANTHROPIC_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "k8s-chat.fullname" . }}-anthropic
-                  key: api-key
+                  name: {{ .Values.secret.name }}
+                  key: {{ .Values.secret.key }}
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
-            {{- end }}
-            - name: RUST_LOG
-              value: "debug"
-            - name: GOOSE_LOG_LEVEL
-              value: {{ .Values.goose.logging.level | quote }}
-            {{- if .Values.secrets.additional }}
-            {{- range .Values.secrets.additional }}
-            - name: {{ .envName }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .secretName }}
-                  key: {{ .secretKey }}
-                  {{- if .optional }}
-                  optional: {{ .optional }}
-                  {{- end }}
-            {{- end }}
             {{- end }}
           livenessProbe:
             httpGet:
               path: /
               port: http
             initialDelaySeconds: 30
-            periodSeconds: 30
+            periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /
               port: http
             initialDelaySeconds: 5
-            periodSeconds: 10
+            periodSeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          volumeMounts:
-            {{- if .Values.volumes.config.enabled }}
-            - name: goose-config
-              mountPath: {{ .Values.volumes.config.mountPath }}
-            {{- end }}
-            {{- if .Values.volumes.data.enabled }}
-            - name: goose-data
-              mountPath: {{ .Values.volumes.data.mountPath }}
-            {{- end }}
-      volumes:
-        {{- if .Values.volumes.config.enabled }}
-        - name: goose-config
-          configMap:
-            name: {{ include "k8s-chat.fullname" . }}-config
-        {{- end }}
-        {{- if .Values.volumes.data.enabled }}
-        - name: goose-data
-          emptyDir: {}
-        {{- end }}
