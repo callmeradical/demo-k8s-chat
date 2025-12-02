@@ -59,15 +59,10 @@ run-local: setup ## Run locally (creates secret and launches goose)
 	@echo "$(BLUE)🚀 Running K8s Chat locally...$(NC)"
 	@./setup-and-run.sh
 
-helm-install: setup build ## Deploy to Kubernetes using Helm
+helm-install: setup build ## Deploy to Kubernetes using Helm (assumes secret already exists)
 	@echo "$(BLUE)🚀 Deploying K8s Chat to Kubernetes...$(NC)"
-	@echo "$(YELLOW)📝 Creating Kubernetes secret...$(NC)"
-	@kubectl create secret generic k8s-chat-anthropic \
-		--from-literal=api-key="$$ANTHROPIC_API_KEY" \
-		--namespace="$(NAMESPACE)" \
-		--dry-run=client -o yaml | kubectl apply -f -
-	@echo "$(GREEN)✅ Secret created/updated$(NC)"
 	@echo "$(YELLOW)📦 Installing Helm chart...$(NC)"
+	@echo "$(YELLOW)💡 Note: Assumes k8s-chat-anthropic secret already exists. Run 'make create-secret' first if needed.$(NC)"
 	@helm upgrade --install k8s-chat ./helm/k8s-chat \
 		--namespace $(NAMESPACE) \
 		--create-namespace \

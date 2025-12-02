@@ -18,10 +18,13 @@ make run-local
 # 1. Set your API key
 export ANTHROPIC_API_KEY="sk-ant-..."
 
-# 2. Deploy to Kubernetes
+# 2. Create the Kubernetes secret (prerequisite)
+make create-secret
+
+# 3. Deploy to Kubernetes
 make helm-install
 
-# 3. Access the service
+# 4. Access the service
 kubectl port-forward svc/k8s-chat 3000:3000
 ```
 
