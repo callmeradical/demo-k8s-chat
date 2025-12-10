@@ -1,0 +1,11 @@
+providers:
+  anthropic:
+    type: anthropic
+default_provider: anthropic
+extensions:
+  developer:
+    enabled: true
+    type: builtin
+    name: developer
+    description: Shell access for kubectl commands and Kubernetes operations
+    timeout: 300
