@@ -1,0 +1,16 @@
+apiVersion: v2
+name: goose-k8s-demo
+description: A Helm chart for deploying Goose AI assistant for Kubernetes demos
+type: application
+version: 0.1.0
+appVersion: "1.15.0"
+keywords:
+  - goose
+  - ai
+  - kubernetes
+  - anthropic
+  - demo
+home: https://github.com/block/goose
+maintainers:
+  - name: demo-maintainer
+    email: demo@example.com

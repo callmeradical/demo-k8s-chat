@@ -1,11 +1,11 @@
+# Minimal Goose Container for Kubernetes Demos
 FROM debian:bookworm-slim
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
-    wget \
-    unzip \
+    bash \
     bzip2 \
     libxcb1 \
     libx11-6 \
@@ -16,23 +16,34 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     libasound2 \
     libatk1.0-0 \
-    libcairo2 \
-    libdrm2 \
+    libcairo-gobject2 \
     libgtk-3-0 \
-    libgbm1 \
-    libnss3 \
+    libgdk-pixbuf2.0-0 \
+    libglib2.0-0 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
+    libgcc-s1 \
+    libc6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install kubectl for Kubernetes operations
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        KUBECTL_ARCH="amd64"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        KUBECTL_ARCH="arm64"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${KUBECTL_ARCH}/kubectl" \
     && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
     && rm kubectl
 
 # Create non-root user
 RUN useradd -m -s /bin/bash goose && \
-    mkdir -p /home/goose/.config/goose /home/goose/.local/share/goose /home/goose/.local/state/goose/logs && \
-    chown -R goose:goose /home/goose && \
-    chmod -R 755 /home/goose/.local
+    mkdir -p /home/goose/.config/goose /home/goose/.local/share/goose /home/goose/.kube && \
+    chown -R goose:goose /home/goose
 
 # Download and install Goose binary
 ARG GOOSE_VERSION=1.15.0
@@ -44,7 +55,7 @@ RUN ARCH=$(uname -m) && \
     else \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
-    wget -O goose.tar.bz2 "https://github.com/block/goose/releases/download/v${GOOSE_VERSION}/goose-${GOOSE_ARCH}.tar.bz2" && \
+    curl -L -o goose.tar.bz2 "https://github.com/block/goose/releases/download/v${GOOSE_VERSION}/goose-${GOOSE_ARCH}.tar.bz2" && \
     tar -xjf goose.tar.bz2 && \
     mv goose /usr/local/bin/ && \
     chmod +x /usr/local/bin/goose && \
@@ -54,15 +65,17 @@ RUN ARCH=$(uname -m) && \
 USER goose
 WORKDIR /home/goose
 
-# Expose the web interface port
-EXPOSE 3000
+# Copy goose configuration
+COPY --chown=goose:goose goose-config.yaml /home/goose/.config/goose/config.yaml
 
 # Set environment variables
 ENV GOOSE_CONFIG_DIR=/home/goose/.config/goose
 ENV GOOSE_DATA_DIR=/home/goose/.local/share/goose
-ENV GOOSE_LOGS_DIR=/home/goose/.local/state/goose/logs
-ENV PATH=/usr/local/bin:$PATH
 ENV KUBECONFIG=/home/goose/.kube/config
+ENV PATH=/usr/local/bin:$PATH
+
+# Expose the web interface port
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

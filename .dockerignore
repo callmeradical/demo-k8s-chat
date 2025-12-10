@@ -1,0 +1,34 @@
+# Git and version control
+.git
+.github
+.gitignore
+
+# Documentation
+docs/
+README.md
+*.md
+
+# Scripts (we copy what we need)
+scripts/
+
+# Backup files
+*.backup
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Container artifacts
+.dockerignore

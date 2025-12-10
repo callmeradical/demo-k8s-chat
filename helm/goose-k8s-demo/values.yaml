@@ -1,0 +1,97 @@
+# Default values for goose-k8s-demo
+# This is a YAML-formatted file
+# Declare variables to be substituted into your templates
+
+# Image configuration
+image:
+  repository: ghcr.io/owner-placeholder/repo-placeholder
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# Service account configuration
+serviceAccount:
+  create: true
+  name: "goose-serviceaccount"
+
+# Secret configuration
+# The secret must exist in the namespace with the name 'anthropic-api-key'
+secret:
+  name: "anthropic-api-key"
+  key: "api-key"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+
+# Deployment configuration
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Goose configuration
+goose:
+  version: "1.15.0"
+  config:
+    providers:
+      anthropic:
+        type: anthropic
+    default_provider: anthropic
+    extensions:
+      developer:
+        enabled: true
+        type: builtin
+        name: developer
+        description: Shell access for kubectl commands and Kubernetes operations
+        timeout: 300
+
+# RBAC configuration
+rbac:
+  create: true
+  # Rules for cluster access - modify as needed for your security requirements
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "pods/log", "services", "endpoints", "nodes", "namespaces", "configmaps", "secrets"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    - apiGroups: ["apps"]
+      resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    - apiGroups: ["batch"]
+      resources: ["jobs", "cronjobs"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    - apiGroups: ["networking.k8s.io"]
+      resources: ["ingresses", "networkpolicies"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    - apiGroups: ["autoscaling"]
+      resources: ["horizontalpodautoscalers"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+# Pod security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Health checks
+healthCheck:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}

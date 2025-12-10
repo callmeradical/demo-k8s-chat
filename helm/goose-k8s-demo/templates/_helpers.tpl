@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "k8s-chat.name" -}}
+{{- define "goose-k8s-demo.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "k8s-chat.fullname" -}}
+{{- define "goose-k8s-demo.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "k8s-chat.chart" -}}
+{{- define "goose-k8s-demo.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "k8s-chat.labels" -}}
-helm.sh/chart: {{ include "k8s-chat.chart" . }}
-{{ include "k8s-chat.selectorLabels" . }}
+{{- define "goose-k8s-demo.labels" -}}
+helm.sh/chart: {{ include "goose-k8s-demo.chart" . }}
+{{ include "goose-k8s-demo.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,34 +45,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "k8s-chat.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "k8s-chat.name" . }}
+{{- define "goose-k8s-demo.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "goose-k8s-demo.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Backend selector labels
-*/}}
-{{- define "k8s-chat.backend.selectorLabels" -}}
-{{ include "k8s-chat.selectorLabels" . }}
-app.kubernetes.io/component: backend
-{{- end }}
-
-{{/*
-Frontend selector labels
-*/}}
-{{- define "k8s-chat.frontend.selectorLabels" -}}
-{{ include "k8s-chat.selectorLabels" . }}
-app.kubernetes.io/component: frontend
-{{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "k8s-chat.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "k8s-chat.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
 {{- end }}
